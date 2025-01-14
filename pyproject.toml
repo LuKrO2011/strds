@@ -1,0 +1,124 @@
+[project]
+name = "strds"
+description = "Python module for generating datasets"
+authors = [{ name = "LuKrO2011", email = "<lukas.krodinger@gmail.com>" }]
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.13"
+packages = [
+    { include = "strds", from = "src" }
+]
+include = [
+    { path = "tests", format = "sdist" }
+]
+
+[tool.poetry.scripts]
+dataset = "strds.dataset:cli"
+provide = "strds.provide:cli"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+rich = "^13.9.4"
+gitpython = "^3.1.43"
+click = "^8.1.8"
+libcst = "^1.6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+isort = { version = "^5.12.0", extras = ["pyproject"] }
+mypy = "^0.991"
+pre-commit = "^3.0.0"
+pylint = "^2.15.10"
+pyupgrade = "^3.3.1"
+ruff = "^0.0.235"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.2.1"
+pytest-sugar = "^0.9.6"
+
+
+[tool.black]
+line-length = 88
+target_version = ["py311"]
+include = '\.pyi?$'
+
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+indent = "    "
+
+
+[tool.mypy]
+check_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = true
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+
+
+[[tool.mypy.overrides]]
+module = "project_template.*"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+
+[tool.coverage.run]
+branch = true
+source = ["src/project_template", "tests"]
+omit = ["tests/fixtures/*"]
+
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:"
+]
+
+
+[tool.coverage.html]
+directory = "cov_html"
+
+
+[tool.ruff]
+line-length = 88
+select = ["B", "C", "E", "F", "W", "C4", "C90", "ISC", "PD", "PLE", "PT", "RET", "SIM", "TID", "UP"]
+ignore = []
+show-source = true
+exclude = [
+    "docs",
+    ".venv",
+    "venv",
+    ".mypy_cache",
+    ".pytest_cache"
+]
+target-version = "py311"
+
+
+[tool.ruff.mccabe]
+max-complexity = 10
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

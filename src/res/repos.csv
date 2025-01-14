@@ -1,0 +1,2 @@
+Project_Name,Github_URL,matching_github_tag,PYPI_latest_tag,funcs_to_trace,tests_to_run,pypi_fetch_status,pypi_http_response_code,PYPI_classifiers,PYPI_project_urls,github_url_status,git_tags
+mlvtools,https://github.com/peopledoc/mlvtools,,2.1.1,,,successful,200,['Programming Language :: Python :: 3'],{'Homepage': 'http://github.com/peopledoc/ml-versionning-tools'},200.0,[]

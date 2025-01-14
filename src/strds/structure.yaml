@@ -1,0 +1,52 @@
+# Adopted from https://github.com/microsoft/methods2test for Python without test cases
+
+repository:
+  name: string  # Name of the repository (matches the PyPI name)
+  url: string  # Repository URL
+#  repo_id: int  # Unique identifier of the repository in the dataset
+#  language: string  # Programming languages of the repository
+#  is_fork: boolean  # Whether repository is a fork
+#  fork_count: int  # Number of forks
+#  stargazer_count: int  # Cumulative number of stars on GitHub
+  pypi_tag: string  # PyPI release tag of the repository
+  git_commit_hash: string  # Specific commit hash of the repository
+  modules: list  # List of modules in the repository
+
+module:  # Python module
+  name: string  # Module name
+  file_path: string  # Relative path to the file containing the module
+  functions: list  # List of standalone functions in the module
+  classes: list  # List of classes in the module
+
+function:  # Standalone function
+  identifier: string  # Function name
+  parameters: list  # List of parameters of the function
+  annotations: string  # Function annotations
+  return: string | null  # Return type of the function
+  body: string  # Source code of the function
+  signature: string  # Function signature (name + parameters + return type)
+  full_signature: string  # Full function signature (annotations + name + parameters + return type)
+  file: string  # Relative path to the file containing the function
+
+class:  # Class definition
+  identifier: string  # Class name
+  methods: list  # List of methods in the class
+  superclasses: list  # Superclasses of the class
+  fields: list  # Class fields (attributes)
+  file: string  # Relative path to the file containing the class
+
+method:  # Method inside a class
+  identifier: string  # Method name
+  parameters: list  # List of parameters of the method
+  annotations: string  # Method annotations
+  return: string | null  # Return type of the method
+  body: string  # Source code of the method
+  signature: string  # Method signature (name + parameters + return type)
+  full_signature: string  # Full method signature (annotations + name + parameters + return type)
+  constructor: boolean  # Whether the method is a constructor
+
+parameter:  # Function or method parameter
+  identifier: string  # Parameter name
+  type: string | null  # Type annotation of the parameter
+  line_number: int  # Line number of the parameter definition
+  col_offset: int  # Column offset of the parameter definition

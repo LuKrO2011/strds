@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<projects><project><name>mlvtools</name><version>2.1.1</version><repository>https://github.com/peopledoc/mlvtools</repository><sources>projects/mlvtools</sources><modules><module>mlvtools.conf.conf</module><module>mlvtools.docstring_helpers.extract</module><module>mlvtools.docstring_helpers.parse</module><module>mlvtools.helper</module><module>mlvtools.ipynb_to_python</module><module>tests.unit.diff.test_parse</module><module>tests.unit.test_check_consitency</module></modules></project></projects>
