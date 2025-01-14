@@ -7,8 +7,8 @@ import click
 import libcst as cst
 from rich.console import Console
 
-from strds.pynguin_xml import create_pynguin_xmls
-from strds.structure import Repository, clone, load_from_json_file
+from strds.utils.pynguin_xml import create_pynguin_xmls
+from strds.utils.structure import Repository, clone, load_from_json_file
 
 console = Console()
 

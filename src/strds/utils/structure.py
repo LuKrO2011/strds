@@ -6,10 +6,10 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from strds.clone_projects import clone_repository
+from strds.utils.clone_projects import clone_repository
 
 if TYPE_CHECKING:
-    from strds.filter import Filter
+    from strds.utils.filter import Filter
 
 
 @dataclass

@@ -4,7 +4,7 @@ import inspect
 import sys
 from abc import ABC, abstractmethod
 
-from strds.structure import Repository
+from strds.utils.structure import Repository
 
 
 class Filter(ABC):

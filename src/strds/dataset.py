@@ -7,9 +7,9 @@ from pathlib import Path
 import click
 from rich.console import Console
 
-from strds.clone_projects import LocalProject, clone_projects
-from strds.filter import Filter, FilterFactory
-from strds.structure import (
+from strds.utils.clone_projects import LocalProject, clone_projects
+from strds.utils.filter import Filter, FilterFactory
+from strds.utils.structure import (
     Class,
     Function,
     Method,

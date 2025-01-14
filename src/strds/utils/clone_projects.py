@@ -6,7 +6,7 @@ import click
 import git
 from rich.console import Console
 
-from strds.flapy_csv_utils import FlaPyProject, parse_csv
+from strds.utils.flapy_csv_utils import FlaPyProject, parse_csv
 
 CONSOLE = Console()
 

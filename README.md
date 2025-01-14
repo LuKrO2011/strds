@@ -1,4 +1,4 @@
-# Dataset Creation Tool
+# Strds: String Dataset Creation Tool
 
 This tool allows users to process and analyze Python repositories to create structured datasets for further analysis.
 
