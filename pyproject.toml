@@ -25,18 +25,18 @@ libcst = "^1.6.0"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.12.0"
-isort = { version = "^5.12.0", extras = ["pyproject"] }
-mypy = "^0.991"
-pre-commit = "^3.0.0"
-pylint = "^2.15.10"
-pyupgrade = "^3.3.1"
-ruff = "^0.0.235"
+black = "^24.10.0"
+isort = "^5.13.2"
+mypy = "^1.14.1"
+pre-commit = "^4.0.1"
+pylint = "^3.3.3"
+pyupgrade = "^3.19.1"
+ruff = "^0.9.1"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.2.1"
-pytest-sugar = "^0.9.6"
+pytest = "^8.3.4"
+pytest-sugar = "^1.0.0"
 
 
 [tool.black]
@@ -61,6 +61,7 @@ strict_optional = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 warn_unused_configs = true
+strict = true
 
 
 [[tool.mypy.overrides]]
@@ -112,7 +113,7 @@ exclude = [
     ".mypy_cache",
     ".pytest_cache"
 ]
-target-version = "py311"
+target-version = "py313"
 
 
 [tool.ruff.mccabe]

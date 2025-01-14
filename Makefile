@@ -69,6 +69,13 @@ ifneq ($(NO_PRE_COMMIT), 1)
 	poetry run pre-commit install
 endif
 
+.PHONY: clean
+clean:
+	find . -type d -name "__pycache__" -exec rm -r {} +
+	find . -type d -name ".mypy_cache" -exec rm -r {} +
+	find . -type d -name "output" -exec rm -r {} +
+	rm -rf .pytest_cache .ruff_cache
+
 .PHONY: check-safety
 check-safety:
 	$(POETRY_COMMAND_FLAG)poetry check
@@ -79,6 +86,11 @@ check-style:
 	$(BLACK_COMMAND_FLAG)poetry run black --diff --check ./
 	$(ISORT_COMMAND_FLAG)poetry run isort --check-only .
 	$(MYPY_COMMAND_FLAG)poetry run mypy
+	$(POETRY_COMMAND_FLAG)poetry run ruff check --config ./pyproject.toml
+
+.PHONY: pyupgrade
+pyupgrade:
+	poetry run pyupgrade --py311-plus $(shell find . -name '*.py')
 
 .PHONY: codestyle
 codestyle:
@@ -86,7 +98,7 @@ codestyle:
 
 .PHONY: test
 test:
-	poetry run pytest --cov=src --cov=tests --cov-report=term-missing --cov-report html:cov_html tests/
+	poetry run pytest --cov=src --cov=tests --cov-report=term-missing --cov-report=html:cov_html tests/
 
 .PHONY: mypy
 mypy:
@@ -94,7 +106,7 @@ mypy:
 
 .PHONY: ruff
 ruff:
-	poetry run ruff src/types4strings --fix
+	poetry run ruff src/strds --fix --config ./pyproject.toml
 
 .PHONY: isort
 isort:
@@ -105,7 +117,7 @@ black:
 	poetry run black .
 
 .PHONY: check
-check: isort black mypy ruff test
+check: isort black mypy ruff pyupgrade test
 
 .PHONY: lint
 lint: test check-safety check-style
