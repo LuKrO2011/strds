@@ -105,9 +105,8 @@ directory = "cov_html"
 
 [tool.ruff]
 line-length = 88
-select = ["B", "C", "E", "F", "W", "C4", "C90", "ISC", "PD", "PLE", "PT", "RET", "SIM", "TID", "UP"]
-ignore = []
-show-source = true
+lint.select = ["B", "C", "E", "F", "W", "C4", "C90", "ISC", "PD", "PLE", "PT", "RET", "SIM", "TID", "UP"]
+lint.ignore = []
 exclude = [
     "docs",
     ".venv",
@@ -118,7 +117,7 @@ exclude = [
 target-version = "py313"
 
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
 

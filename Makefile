@@ -85,12 +85,12 @@ check-safety:
 check-style:
 	$(BLACK_COMMAND_FLAG)poetry run black --diff --check ./
 	$(ISORT_COMMAND_FLAG)poetry run isort --check-only .
-	$(MYPY_COMMAND_FLAG)poetry run mypy
+	$(MYPY_COMMAND_FLAG)poetry run mypy src/
 	$(POETRY_COMMAND_FLAG)poetry run ruff check --config ./pyproject.toml
 
 .PHONY: pyupgrade
 pyupgrade:
-	poetry run pyupgrade --py311-plus $(shell find . -name '*.py')
+	poetry run pyupgrade --py313-plus $(shell find ./src -name "*.py") $(shell find ./tests -name "*.py")
 
 .PHONY: codestyle
 codestyle:
@@ -106,7 +106,7 @@ mypy:
 
 .PHONY: ruff
 ruff:
-	poetry run ruff src/strds --fix --config ./pyproject.toml
+	poetry run ruff check src/strds --fix --config ./pyproject.toml
 
 .PHONY: isort
 isort:
@@ -116,8 +116,12 @@ isort:
 black:
 	poetry run black .
 
+.PHONY: pylint
+pylint:
+	poetry run pylint src/
+
 .PHONY: check
 check: isort black mypy ruff pyupgrade test
 
 .PHONY: lint
-lint: test check-safety check-style
+lint: test check-safety check-style pylint

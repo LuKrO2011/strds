@@ -7,16 +7,15 @@ from abc import ABC, abstractmethod
 from strds.utils.structure import Repository
 
 
-class Filter(ABC):
+class Filter(ABC):  # pylint: disable=too-few-public-methods
     """Abstract base class for all filters."""
 
     @abstractmethod
     def apply(self, repository: Repository) -> Repository:
         """Apply the filter to a Repository and return the filtered result."""
-        pass
 
 
-class EmptyFilter(Filter):
+class EmptyFilter(Filter):  # pylint: disable=too-few-public-methods
     """Filter that removes empty modules and empty classes.
 
     A class is empty, if it has no methods.
@@ -37,28 +36,28 @@ class EmptyFilter(Filter):
         return repository
 
 
-# TODO: Also consider dicts, lists etc. using strings
-class NoStringTypeFilter(Filter):
-    """Removes all functions and methods without a 'str' parameter or return type."""
+class NoStringTypeFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all functions and methods without a 'str' parameter or return type.
+    Does not consider list[str], dict[str, str] etc.
+    """
 
     def apply(self, repository: Repository) -> Repository:
         for module in repository.modules:
             module.functions = [
                 func
                 for func in module.functions
-                if any(
-                    param.type == "str" for param in func.parameters
-                ) or func.return_type == "str"
+                if any(param.type == "str" for param in func.parameters)
+                   or func.return_type == "str"
             ]
             for cls in module.classes:
                 cls.methods = [
                     method
                     for method in cls.methods
-                    if any(
-                        param.type == "str" for param in method.parameters
-                    ) or method.return_type == "str"
+                    if any(param.type == "str" for param in method.parameters)
+                       or method.return_type == "str"
                 ]
         return repository
+
 
 def get_all_filters() -> dict[str, type[Filter]]:
     """Discover all Filter subclasses in the current module dynamically.
@@ -74,7 +73,7 @@ def get_all_filters() -> dict[str, type[Filter]]:
     return filters
 
 
-class FilterFactory:
+class FilterFactory:  # pylint: disable=too-few-public-methods
     """Factory class to create filters dynamically from a string."""
 
     _filters = get_all_filters()

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from strds.provide import run_pynguin, run_methods, run_repositories
+from strds.provide import run_methods, run_pynguin, run_repositories
 from strds.utils.pynguin_xml import read_xml
 
 
@@ -65,8 +65,9 @@ def test_integrate_methods_with_type_annotations(tmp_path, file_with_type_annota
     assert actual == expected
 
 
-def test_integrate_methods_without_type_annotations(tmp_path,
-                                                    file_without_type_annotations):
+def test_integrate_methods_without_type_annotations(
+    tmp_path, file_without_type_annotations
+):
     project_path = Path().absolute()
     if project_path.name == "tests":
         project_path /= ".."  # pragma: no cover
@@ -82,8 +83,9 @@ def test_integrate_methods_without_type_annotations(tmp_path,
     assert actual == expected
 
 
-def test_integrate_repositories_with_type_annotations(tmp_path,
-                                                      file_with_type_annotations):
+def test_integrate_repositories_with_type_annotations(
+    tmp_path, file_with_type_annotations
+):
     project_path = Path().absolute()
     if project_path.name == "tests":
         project_path /= ".."  # pragma: no cover
@@ -99,8 +101,9 @@ def test_integrate_repositories_with_type_annotations(tmp_path,
     assert expected in actual
 
 
-def test_integrate_repositories_without_type_annotations(tmp_path,
-                                                         file_without_type_annotations):
+def test_integrate_repositories_without_type_annotations(
+    tmp_path, file_without_type_annotations
+):
     project_path = Path().absolute()
     if project_path.name == "tests":
         project_path /= ".."  # pragma: no cover

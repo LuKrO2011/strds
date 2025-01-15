@@ -42,6 +42,7 @@ repos:
     rev: v1.14.1
     hooks:
       - id: mypy
+        args: [--config-file, ./mypy.ini, src/]
 
   - repo: https://github.com/PyCQA/pylint
     rev: v3.3.3

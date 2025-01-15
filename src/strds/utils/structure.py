@@ -1,7 +1,7 @@
 """Information about the data structures used for the dataset."""
 
 import json
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -20,6 +20,7 @@ class Dataset:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Dataset":  # type: ignore
+        """Create a Dataset object from a dictionary."""
         return cls(
             repositories=[
                 Repository.from_dict(repo) for repo in data.get("repositories", [])
@@ -27,6 +28,7 @@ class Dataset:
         )
 
     def sort(self) -> "Dataset":
+        """Sort the dataset."""
         for repo in self.repositories:
             repo.sort()
         self.repositories = sorted(self.repositories)
@@ -45,6 +47,7 @@ class Repository:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Repository":  # type: ignore
+        """Create a Repository object from a dictionary."""
         return cls(
             name=data["name"],
             pypi_tag=data["pypi_tag"],
@@ -62,11 +65,13 @@ class Repository:
         Returns:
             Repository: The filtered repository.
         """
+        repository = self
         for filter_ in filters:
-            self = filter_.apply(self)
-        return self
+            repository = filter_.apply(repository)
+        return repository
 
     def sort(self) -> "Repository":
+        """Sort the repository."""
         for module in self.modules:
             module.sort()
         self.modules = sorted(self.modules)
@@ -87,6 +92,7 @@ class Module:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Module":  # type: ignore
+        """Create a Module object from a dictionary."""
         return cls(
             name=data["name"],
             file_path=Path(data["file_path"]),
@@ -95,6 +101,7 @@ class Module:
         )
 
     def sort(self) -> "Module":
+        """Sort the module."""
         for func in self.functions:
             func.sort()
         self.functions = sorted(self.functions)
@@ -132,6 +139,7 @@ class Callable(Locatable):
 
     @classmethod
     def from_dict(cls, data: dict) -> "Callable":  # type: ignore
+        """Create a Callable object from a dictionary."""
         return cls(
             name=data["name"],
             line_number=data["line_number"],
@@ -147,6 +155,7 @@ class Callable(Locatable):
         )
 
     def sort(self: "Callable") -> "Callable":
+        """Sort the callable."""
         self.parameters = sorted(self.parameters)
         return self
 
@@ -157,6 +166,7 @@ class Function(Callable):
 
     @classmethod
     def from_dict(cls, data: dict) -> "Function":  # type: ignore
+        """Create a Function object from a dictionary."""
         return cls(**Callable.from_dict(data).__dict__)
 
 
@@ -168,6 +178,7 @@ class Method(Callable):
 
     @classmethod
     def from_dict(cls, data: dict) -> "Method":  # type: ignore
+        """Create a Method object from a dictionary."""
         return cls(
             **Callable.from_dict(data).__dict__,
             is_constructor=data.get("is_constructor", False),
@@ -185,6 +196,7 @@ class Class:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Class":  # type: ignore
+        """Create a Class object from a dictionary."""
         return cls(
             name=data["name"],
             methods=[Method.from_dict(method) for method in data.get("methods", [])],
@@ -193,6 +205,7 @@ class Class:
         )
 
     def sort(self) -> "Class":
+        """Sort the class."""
         for method in self.methods:
             method.sort()
         self.methods = sorted(self.methods)
@@ -212,6 +225,7 @@ class Parameter(Locatable):
 
     @classmethod
     def from_dict(cls, data: dict) -> "Parameter":  # type: ignore
+        """Create a Parameter object from a dictionary."""
         return cls(
             name=data["name"],
             line_number=data["line_number"],
@@ -221,10 +235,13 @@ class Parameter(Locatable):
 
 
 class PathEncoder(json.JSONEncoder):
-    def default(self, obj: object) -> Any:
-        if isinstance(obj, Path):
-            return str(obj)
-        return super().default(obj)
+    """A JSON encoder that serializes Path objects to strings."""
+
+    def default(self, o: object) -> Any:
+        """Converts a Path object to a string."""
+        if isinstance(o, Path):
+            return str(o)
+        return super().default(o)
 
 
 def save_to_json_file(dataset: Dataset, file_path: Path) -> None:

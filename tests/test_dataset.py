@@ -5,7 +5,7 @@ from strds.utils.filter import create_filters
 from strds.utils.structure import load_from_json_file
 
 
-def test_integrate(tmp_path):
+def test_integrate(tmp_path: Path):
     project_path = Path().absolute()
     if project_path.name == "tests":
         project_path /= ".."  # pragma: no cover

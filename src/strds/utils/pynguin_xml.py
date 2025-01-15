@@ -1,17 +1,10 @@
+"""Utility functions for Pynguin XML files."""
 import xml.etree.ElementTree as ET  # noqa: S405
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from strds.utils.structure import Dataset, Module, Repository
-
-# TODO: Use "--ignore_methods" and specify all methods but one. Modify
-#  `pynguin-experiments/prepare_experiment.py` to allow this. Then add all methods
-#  but the selected one to the Pynguin XML file.
-#  Alternative: Implement a --method flag to Pynguin that allows to specify a method
-#  to test. Then adjust stuff accordingly.
-
-# TODO: Behaviour/correctness of this script is not tested with Pynguin yet.
 
 
 @dataclass(frozen=True)
@@ -37,7 +30,7 @@ def create_pynguin_project(project: Repository) -> Project:
         project_name=project.name,
         version=project.pypi_tag,
         repository_url=project.url,
-        sources="projects/" + project.name,  # TODO: Does this work?
+        sources="projects/" + project.name,
         modules=tuple(module_to_string(module) for module in project.modules),
     )
 
@@ -87,7 +80,7 @@ def _parse_modules(modules_element: ET.Element | None) -> tuple[str, ...]:
             if isinstance(module, ET.Element)
         )
     else:
-        modules = tuple()
+        modules = ()
     return modules
 
 
