@@ -1,492 +1,494 @@
-[
+{
+  "repositories": [
     {
-        "name": "mlvtools",
-        "url": "https://github.com/peopledoc/mlvtools",
-        "pypi_tag": "2.1.1",
-        "git_commit_hash": "2a797303b2b0e988f8063fc1d418f65c821efa97",
-        "modules": [
+      "name": "mlvtools",
+      "url": "https://github.com/peopledoc/mlvtools",
+      "pypi_tag": "2.1.1",
+      "git_commit_hash": "2a797303b2b0e988f8063fc1d418f65c821efa97",
+      "modules": [
+        {
+          "name": "ipynb_to_python",
+          "file_path": "mlvtools/ipynb_to_python.py",
+          "functions": [
             {
-                "name": "test_check_consitency",
-                "file_path": "tests/unit/test_check_consitency.py",
-                "functions": [
-                    {
-                        "name": "create_notebook_and_convert_it",
-                        "line_number": 19,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "cells",
-                                "line_number": 19,
-                                "col_offset": 36,
-                                "type": null
-                            },
-                            {
-                                "name": "script_name",
-                                "line_number": 19,
-                                "col_offset": 43,
-                                "type": null
-                            },
-                            {
-                                "name": "conf",
-                                "line_number": 19,
-                                "col_offset": 56,
-                                "type": null
-                            },
-                            {
-                                "name": "work_dir",
-                                "line_number": 19,
-                                "col_offset": 62,
-                                "type": null
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str:\n    \"\"\"\n        Create a notebook from cells then convert it into a python script\n    \"\"\"\n    notebook_path = gen_notebook(tmp_dir=work_dir, file_name='test.ipynb', docstring=None, cells=cells)\n    script_base_path = join(work_dir, script_name)\n    export_to_script(notebook_path, script_base_path, conf)\n    return notebook_path, script_base_path",
-                        "signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
-                        "full_signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
+              "name": "get_converted_script",
+              "line_number": 51,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "input_notebook_path",
+                  "line_number": 51,
+                  "col_offset": 26,
+                  "type": "str"
+                },
+                {
+                  "name": "conf",
+                  "line_number": 51,
+                  "col_offset": 52,
+                  "type": "MlVToolConf"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_converted_script(input_notebook_path: str, conf: MlVToolConf) -> str:\n    \"\"\"\n        Extract notebook python content using nbconvert\n    \"\"\"\n    exporter = PythonExporter(get_config(TEMPLATE_PATH))\n    exporter.register_filter(name='filter_trailing_cells',\n                             jinja_filter=filter_trailing_cells)\n    exporter.register_filter(name='get_formatted_cells',\n                             jinja_filter=get_formatted_cells)\n    exporter.register_filter(name='get_data_from_docstring',\n                             jinja_filter=get_data_from_docstring)\n    exporter.register_filter(name='sanitize_method_name',\n                             jinja_filter=to_method_name)\n    resources = {'ignore_keys': conf.ignore_keys}\n    logging.debug(f'Template info {resources}')\n    try:\n        script_content, _ = exporter.from_filename(input_notebook_path, resources=resources)\n    except Exception as e:\n        raise MlVToolException(e) from e\n    return script_content",
+              "signature": "get_converted_script(input_notebook_path: str, conf: MlVToolConf) -> str",
+              "full_signature": "get_converted_script(input_notebook_path: str, conf: MlVToolConf) -> str",
+              "annotations": ""
             },
             {
-                "name": "test_parse",
-                "file_path": "tests/unit/diff/test_parse.py",
-                "functions": [
-                    {
-                        "name": "script_base",
-                        "line_number": 47,
-                        "col_offset": 5,
-                        "parameters": [],
-                        "return_type": "str",
-                        "body": "def script_base() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-                        "signature": "script_base() -> str",
-                        "full_signature": "script_base() -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_script_base_spaces_and_blank",
-                        "line_number": 63,
-                        "col_offset": 5,
-                        "parameters": [],
-                        "return_type": "str",
-                        "body": "def get_script_base_spaces_and_blank() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\n\n\n\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-                        "signature": "get_script_base_spaces_and_blank() -> str",
-                        "full_signature": "get_script_base_spaces_and_blank() -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_script_diff_comment",
-                        "line_number": 83,
-                        "col_offset": 5,
-                        "parameters": [],
-                        "return_type": "str",
-                        "body": "def get_script_diff_comment() -> str:\n    python_content = \"\"\"\n# This is a different comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    # This a new comment\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-                        "signature": "get_script_diff_comment() -> str",
-                        "full_signature": "get_script_diff_comment() -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_script_diff_docstring",
-                        "line_number": 100,
-                        "col_offset": 5,
-                        "parameters": [],
-                        "return_type": "str",
-                        "body": "def get_script_diff_docstring() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A different docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-                        "signature": "get_script_diff_docstring() -> str",
-                        "full_signature": "get_script_diff_docstring() -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_script_diff",
-                        "line_number": 116,
-                        "col_offset": 5,
-                        "parameters": [],
-                        "return_type": "str",
-                        "body": "def get_script_diff() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return dir_path\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-                        "signature": "get_script_diff() -> str",
-                        "full_signature": "get_script_diff() -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
+              "name": "get_arguments_as_param",
+              "line_number": 92,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "docstring_data",
+                  "line_number": 92,
+                  "col_offset": 28,
+                  "type": "Docstring"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_arguments_as_param(docstring_data: Docstring) -> str:\n    \"\"\"\n        Get formatted parameter for python method call\n    \"\"\"\n    return ', '.join([f'args.{arg.arg_name}' for arg in docstring_data.params])",
+              "signature": "get_arguments_as_param(docstring_data: Docstring) -> str",
+              "full_signature": "get_arguments_as_param(docstring_data: Docstring) -> str",
+              "annotations": ""
             },
             {
-                "name": "ipynb_to_python",
-                "file_path": "mlvtools/ipynb_to_python.py",
-                "functions": [
-                    {
-                        "name": "get_converted_script",
-                        "line_number": 51,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "input_notebook_path",
-                                "line_number": 51,
-                                "col_offset": 26,
-                                "type": "str"
-                            },
-                            {
-                                "name": "conf",
-                                "line_number": 51,
-                                "col_offset": 52,
-                                "type": "MlVToolConf"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_converted_script(input_notebook_path: str, conf: MlVToolConf) -> str:\n    \"\"\"\n        Extract notebook python content using nbconvert\n    \"\"\"\n    exporter = PythonExporter(get_config(TEMPLATE_PATH))\n    exporter.register_filter(name='filter_trailing_cells',\n                             jinja_filter=filter_trailing_cells)\n    exporter.register_filter(name='get_formatted_cells',\n                             jinja_filter=get_formatted_cells)\n    exporter.register_filter(name='get_data_from_docstring',\n                             jinja_filter=get_data_from_docstring)\n    exporter.register_filter(name='sanitize_method_name',\n                             jinja_filter=to_method_name)\n    resources = {'ignore_keys': conf.ignore_keys}\n    logging.debug(f'Template info {resources}')\n    try:\n        script_content, _ = exporter.from_filename(input_notebook_path, resources=resources)\n    except Exception as e:\n        raise MlVToolException(e) from e\n    return script_content",
-                        "signature": "get_converted_script(input_notebook_path: str, conf: MlVToolConf) -> str",
-                        "full_signature": "get_converted_script(input_notebook_path: str, conf: MlVToolConf) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_arguments_as_param",
-                        "line_number": 92,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "docstring_data",
-                                "line_number": 92,
-                                "col_offset": 28,
-                                "type": "Docstring"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_arguments_as_param(docstring_data: Docstring) -> str:\n    \"\"\"\n        Get formatted parameter for python method call\n    \"\"\"\n    return ', '.join([f'args.{arg.arg_name}' for arg in docstring_data.params])",
-                        "signature": "get_arguments_as_param(docstring_data: Docstring) -> str",
-                        "full_signature": "get_arguments_as_param(docstring_data: Docstring) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_param_as_python_method_format",
-                        "line_number": 99,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "docstring_data",
-                                "line_number": 99,
-                                "col_offset": 39,
-                                "type": "Docstring"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_param_as_python_method_format(docstring_data: Docstring) -> str:\n    \"\"\"\n        Extract parameters from a docstring then format them\n    \"\"\"\n    return ', '.join(f'{p.arg_name}' for p in docstring_data.params)",
-                        "signature": "get_param_as_python_method_format(docstring_data: Docstring) -> str",
-                        "full_signature": "get_param_as_python_method_format(docstring_data: Docstring) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "is_trailing_cell",
-                        "line_number": 153,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "cell",
-                                "line_number": 153,
-                                "col_offset": 22,
-                                "type": "Dict[str, Any]"
-                            },
-                            {
-                                "name": "resource",
-                                "line_number": 153,
-                                "col_offset": 44,
-                                "type": "Dict[str, Any]"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def is_trailing_cell(cell: Dict[str, Any], resource: Dict[str, Any]) -> str:\n    \"\"\"\n        Return true if the cell is a 'no effect cell' or not a 'code cell'\n    \"\"\"\n    logging.debug('Look for no trailing cells')\n    return cell['cell_type'] != 'code' or is_no_effect(cell['source'], resource)",
-                        "signature": "is_trailing_cell(cell: Dict[str, Any], resource: Dict[str, Any]) -> str",
-                        "full_signature": "is_trailing_cell(cell: Dict[str, Any], resource: Dict[str, Any]) -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
+              "name": "get_param_as_python_method_format",
+              "line_number": 99,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "docstring_data",
+                  "line_number": 99,
+                  "col_offset": 39,
+                  "type": "Docstring"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_param_as_python_method_format(docstring_data: Docstring) -> str:\n    \"\"\"\n        Extract parameters from a docstring then format them\n    \"\"\"\n    return ', '.join(f'{p.arg_name}' for p in docstring_data.params)",
+              "signature": "get_param_as_python_method_format(docstring_data: Docstring) -> str",
+              "full_signature": "get_param_as_python_method_format(docstring_data: Docstring) -> str",
+              "annotations": ""
             },
             {
-                "name": "helper",
-                "file_path": "mlvtools/helper.py",
-                "functions": [
-                    {
-                        "name": "to_cmd_param",
-                        "line_number": 18,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "variable",
-                                "line_number": 18,
-                                "col_offset": 18,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def to_cmd_param(variable: str) -> str:\n    \"\"\"\n        Convert a variable in a command parameter format\n    \"\"\"\n    return variable.replace('_', '-')",
-                        "signature": "to_cmd_param(variable: str) -> str",
-                        "full_signature": "to_cmd_param(variable: str) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "to_bash_variable",
-                        "line_number": 25,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "param",
-                                "line_number": 25,
-                                "col_offset": 22,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def to_bash_variable(param: str) -> str:\n    \"\"\"\n        Convert a command variable in a bash variable\n    \"\"\"\n    return param.upper().replace('-', '_')",
-                        "signature": "to_bash_variable(param: str) -> str",
-                        "full_signature": "to_bash_variable(param: str) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "to_method_name",
-                        "line_number": 32,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "name",
-                                "line_number": 32,
-                                "col_offset": 20,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def to_method_name(name: str) -> str:\n    \"\"\"\n        Convert a file name without extension to a python method name\n    \"\"\"\n    return '{}{}'.format(MLV_PREFIX, to_lower_alphanum(name))",
-                        "signature": "to_method_name(name: str) -> str",
-                        "full_signature": "to_method_name(name: str) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "to_script_name",
-                        "line_number": 39,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "file_name",
-                                "line_number": 39,
-                                "col_offset": 20,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def to_script_name(file_name: str) -> str:\n    \"\"\"\n        Return a python script name deduced from a notebook file name\n    \"\"\"\n    without_extension = splitext(file_name)[0]\n    return '{}{}.py'.format(MLV_PREFIX, to_lower_alphanum(without_extension))",
-                        "signature": "to_script_name(file_name: str) -> str",
-                        "full_signature": "to_script_name(file_name: str) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "to_dvc_cmd_name",
-                        "line_number": 54,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "script_name",
-                                "line_number": 54,
-                                "col_offset": 21,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def to_dvc_cmd_name(script_name: str) -> str:\n    \"\"\"\n        Return a dvc command name deduced from a python script name\n    \"\"\"\n    return '{}_dvc'.format(splitext(script_name)[0])",
-                        "signature": "to_dvc_cmd_name(script_name: str) -> str",
-                        "full_signature": "to_dvc_cmd_name(script_name: str) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "to_dvc_meta_filename",
-                        "line_number": 61,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "python_script_path",
-                                "line_number": 61,
-                                "col_offset": 26,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def to_dvc_meta_filename(python_script_path: str) -> str:\n    \"\"\"\n        Return a dvc meta file name deduced from a python script path\n    \"\"\"\n    without_extension = splitext(python_script_path)[0]\n    return f'{to_lower_alphanum(basename(without_extension))}.dvc'",
-                        "signature": "to_dvc_meta_filename(python_script_path: str) -> str",
-                        "full_signature": "to_dvc_meta_filename(python_script_path: str) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "render_string_template",
-                        "line_number": 106,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "string_template",
-                                "line_number": 106,
-                                "col_offset": 28,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def render_string_template(string_template: str, **kwargs) -> str:\n    \"\"\"\n        Render a Jinja string template\n    \"\"\"\n    return Environment(undefined=StrictUndefined).from_string(string_template).render(**kwargs)",
-                        "signature": "render_string_template(string_template: str) -> str",
-                        "full_signature": "render_string_template(string_template: str) -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
-            },
-            {
-                "name": "parse",
-                "file_path": "mlvtools/docstring_helpers/parse.py",
-                "functions": [
-                    {
-                        "name": "resolve_docstring",
-                        "line_number": 216,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "docstring",
-                                "line_number": 216,
-                                "col_offset": 23,
-                                "type": "str"
-                            },
-                            {
-                                "name": "docstring_conf",
-                                "line_number": 216,
-                                "col_offset": 39,
-                                "type": "dict"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def resolve_docstring(docstring: str, docstring_conf: dict) -> str:\n    \"\"\"\n        Use jinja to resolve docstring template using user custom configuration\n    \"\"\"\n    try:\n        return render_string_template(docstring, conf=docstring_conf)\n    except jinja2.exceptions.TemplateError as e:\n        raise MlVToolException(f'Cannot resolve docstring using Jinja, {e}') from e",
-                        "signature": "resolve_docstring(docstring: str, docstring_conf: dict) -> str",
-                        "full_signature": "resolve_docstring(docstring: str, docstring_conf: dict) -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
-            },
-            {
-                "name": "extract",
-                "file_path": "mlvtools/docstring_helpers/extract.py",
-                "functions": [
-                    {
-                        "name": "extract_docstring",
-                        "line_number": 12,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "cell_content",
-                                "line_number": 12,
-                                "col_offset": 23,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def extract_docstring(cell_content: str) -> str:\n    \"\"\" Extract a docstring from a cell content \"\"\"\n    logging.info('Extract docstring from cell content')\n    logging.debug(f'Cell content {cell_content}')\n    docstring = ''\n    try:\n        root = get_ast(cell_content)\n    except SyntaxError as e:\n        raise MlVToolException(f'Invalid python cell format: {cell_content}') from e\n    for node in ast.walk(root):\n        if isinstance(node, ast.Module):\n            docstring = ast.get_docstring(node)\n            break\n    return docstring",
-                        "signature": "extract_docstring(cell_content: str) -> str",
-                        "full_signature": "extract_docstring(cell_content: str) -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
-            },
-            {
-                "name": "conf",
-                "file_path": "mlvtools/conf/conf.py",
-                "functions": [
-                    {
-                        "name": "get_script_output_path",
-                        "line_number": 93,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "notebook_path",
-                                "line_number": 93,
-                                "col_offset": 28,
-                                "type": "str"
-                            },
-                            {
-                                "name": "conf",
-                                "line_number": 93,
-                                "col_offset": 48,
-                                "type": "MlVToolConf"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_script_output_path(notebook_path: str, conf: MlVToolConf) -> str:\n    \"\"\" Generate python script path according to conf and notebook file name \"\"\"\n    file_name = to_script_name(basename(notebook_path))\n    return join(conf.top_directory, conf.path.python_script_root_dir, file_name)",
-                        "signature": "get_script_output_path(notebook_path: str, conf: MlVToolConf) -> str",
-                        "full_signature": "get_script_output_path(notebook_path: str, conf: MlVToolConf) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_dvc_cmd_output_path",
-                        "line_number": 99,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "script_path",
-                                "line_number": 99,
-                                "col_offset": 29,
-                                "type": "str"
-                            },
-                            {
-                                "name": "conf",
-                                "line_number": 99,
-                                "col_offset": 47,
-                                "type": "MlVToolConf"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_dvc_cmd_output_path(script_path: str, conf: MlVToolConf) -> str:\n    \"\"\" Generate dvc command path according to conf and python script file name \"\"\"\n    file_name = to_dvc_cmd_name(basename(script_path))\n    return join(conf.top_directory, conf.path.dvc_cmd_root_dir, file_name)",
-                        "signature": "get_dvc_cmd_output_path(script_path: str, conf: MlVToolConf) -> str",
-                        "full_signature": "get_dvc_cmd_output_path(script_path: str, conf: MlVToolConf) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_dvc_metadata_output_path",
-                        "line_number": 105,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "script_path",
-                                "line_number": 105,
-                                "col_offset": 34,
-                                "type": "str"
-                            },
-                            {
-                                "name": "conf",
-                                "line_number": 105,
-                                "col_offset": 52,
-                                "type": "MlVToolConf"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_dvc_metadata_output_path(script_path: str, conf: MlVToolConf) -> str:\n    \"\"\" Generate dvc metadata path according to conf and python script file name \"\"\"\n    file_name = to_dvc_meta_filename(basename(script_path))\n    return join(conf.top_directory, conf.path.dvc_metadata_root_dir, file_name)",
-                        "signature": "get_dvc_metadata_output_path(script_path: str, conf: MlVToolConf) -> str",
-                        "full_signature": "get_dvc_metadata_output_path(script_path: str, conf: MlVToolConf) -> str",
-                        "annotations": ""
-                    },
-                    {
-                        "name": "get_conf_file_default_path",
-                        "line_number": 111,
-                        "col_offset": 5,
-                        "parameters": [
-                            {
-                                "name": "work_dir",
-                                "line_number": 111,
-                                "col_offset": 32,
-                                "type": "str"
-                            }
-                        ],
-                        "return_type": "str",
-                        "body": "def get_conf_file_default_path(work_dir: str) -> str:\n    return join(work_dir, DEFAULT_CONF_FILENAME)",
-                        "signature": "get_conf_file_default_path(work_dir: str) -> str",
-                        "full_signature": "get_conf_file_default_path(work_dir: str) -> str",
-                        "annotations": ""
-                    }
-                ],
-                "classes": []
+              "name": "is_trailing_cell",
+              "line_number": 153,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "cell",
+                  "line_number": 153,
+                  "col_offset": 22,
+                  "type": "Dict[str, Any]"
+                },
+                {
+                  "name": "resource",
+                  "line_number": 153,
+                  "col_offset": 44,
+                  "type": "Dict[str, Any]"
+                }
+              ],
+              "return_type": "str",
+              "body": "def is_trailing_cell(cell: Dict[str, Any], resource: Dict[str, Any]) -> str:\n    \"\"\"\n        Return true if the cell is a 'no effect cell' or not a 'code cell'\n    \"\"\"\n    logging.debug('Look for no trailing cells')\n    return cell['cell_type'] != 'code' or is_no_effect(cell['source'], resource)",
+              "signature": "is_trailing_cell(cell: Dict[str, Any], resource: Dict[str, Any]) -> str",
+              "full_signature": "is_trailing_cell(cell: Dict[str, Any], resource: Dict[str, Any]) -> str",
+              "annotations": ""
             }
-        ]
+          ],
+          "classes": []
+        },
+        {
+          "name": "helper",
+          "file_path": "mlvtools/helper.py",
+          "functions": [
+            {
+              "name": "to_cmd_param",
+              "line_number": 18,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "variable",
+                  "line_number": 18,
+                  "col_offset": 18,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def to_cmd_param(variable: str) -> str:\n    \"\"\"\n        Convert a variable in a command parameter format\n    \"\"\"\n    return variable.replace('_', '-')",
+              "signature": "to_cmd_param(variable: str) -> str",
+              "full_signature": "to_cmd_param(variable: str) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "to_bash_variable",
+              "line_number": 25,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "param",
+                  "line_number": 25,
+                  "col_offset": 22,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def to_bash_variable(param: str) -> str:\n    \"\"\"\n        Convert a command variable in a bash variable\n    \"\"\"\n    return param.upper().replace('-', '_')",
+              "signature": "to_bash_variable(param: str) -> str",
+              "full_signature": "to_bash_variable(param: str) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "to_method_name",
+              "line_number": 32,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "name",
+                  "line_number": 32,
+                  "col_offset": 20,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def to_method_name(name: str) -> str:\n    \"\"\"\n        Convert a file name without extension to a python method name\n    \"\"\"\n    return '{}{}'.format(MLV_PREFIX, to_lower_alphanum(name))",
+              "signature": "to_method_name(name: str) -> str",
+              "full_signature": "to_method_name(name: str) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "to_script_name",
+              "line_number": 39,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "file_name",
+                  "line_number": 39,
+                  "col_offset": 20,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def to_script_name(file_name: str) -> str:\n    \"\"\"\n        Return a python script name deduced from a notebook file name\n    \"\"\"\n    without_extension = splitext(file_name)[0]\n    return '{}{}.py'.format(MLV_PREFIX, to_lower_alphanum(without_extension))",
+              "signature": "to_script_name(file_name: str) -> str",
+              "full_signature": "to_script_name(file_name: str) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "to_dvc_cmd_name",
+              "line_number": 54,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "script_name",
+                  "line_number": 54,
+                  "col_offset": 21,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def to_dvc_cmd_name(script_name: str) -> str:\n    \"\"\"\n        Return a dvc command name deduced from a python script name\n    \"\"\"\n    return '{}_dvc'.format(splitext(script_name)[0])",
+              "signature": "to_dvc_cmd_name(script_name: str) -> str",
+              "full_signature": "to_dvc_cmd_name(script_name: str) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "to_dvc_meta_filename",
+              "line_number": 61,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "python_script_path",
+                  "line_number": 61,
+                  "col_offset": 26,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def to_dvc_meta_filename(python_script_path: str) -> str:\n    \"\"\"\n        Return a dvc meta file name deduced from a python script path\n    \"\"\"\n    without_extension = splitext(python_script_path)[0]\n    return f'{to_lower_alphanum(basename(without_extension))}.dvc'",
+              "signature": "to_dvc_meta_filename(python_script_path: str) -> str",
+              "full_signature": "to_dvc_meta_filename(python_script_path: str) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "render_string_template",
+              "line_number": 106,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "string_template",
+                  "line_number": 106,
+                  "col_offset": 28,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def render_string_template(string_template: str, **kwargs) -> str:\n    \"\"\"\n        Render a Jinja string template\n    \"\"\"\n    return Environment(undefined=StrictUndefined).from_string(string_template).render(**kwargs)",
+              "signature": "render_string_template(string_template: str) -> str",
+              "full_signature": "render_string_template(string_template: str) -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
+          "name": "parse",
+          "file_path": "mlvtools/docstring_helpers/parse.py",
+          "functions": [
+            {
+              "name": "resolve_docstring",
+              "line_number": 216,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "docstring",
+                  "line_number": 216,
+                  "col_offset": 23,
+                  "type": "str"
+                },
+                {
+                  "name": "docstring_conf",
+                  "line_number": 216,
+                  "col_offset": 39,
+                  "type": "dict"
+                }
+              ],
+              "return_type": "str",
+              "body": "def resolve_docstring(docstring: str, docstring_conf: dict) -> str:\n    \"\"\"\n        Use jinja to resolve docstring template using user custom configuration\n    \"\"\"\n    try:\n        return render_string_template(docstring, conf=docstring_conf)\n    except jinja2.exceptions.TemplateError as e:\n        raise MlVToolException(f'Cannot resolve docstring using Jinja, {e}') from e",
+              "signature": "resolve_docstring(docstring: str, docstring_conf: dict) -> str",
+              "full_signature": "resolve_docstring(docstring: str, docstring_conf: dict) -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
+          "name": "extract",
+          "file_path": "mlvtools/docstring_helpers/extract.py",
+          "functions": [
+            {
+              "name": "extract_docstring",
+              "line_number": 12,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "cell_content",
+                  "line_number": 12,
+                  "col_offset": 23,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def extract_docstring(cell_content: str) -> str:\n    \"\"\" Extract a docstring from a cell content \"\"\"\n    logging.info('Extract docstring from cell content')\n    logging.debug(f'Cell content {cell_content}')\n    docstring = ''\n    try:\n        root = get_ast(cell_content)\n    except SyntaxError as e:\n        raise MlVToolException(f'Invalid python cell format: {cell_content}') from e\n    for node in ast.walk(root):\n        if isinstance(node, ast.Module):\n            docstring = ast.get_docstring(node)\n            break\n    return docstring",
+              "signature": "extract_docstring(cell_content: str) -> str",
+              "full_signature": "extract_docstring(cell_content: str) -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
+          "name": "conf",
+          "file_path": "mlvtools/conf/conf.py",
+          "functions": [
+            {
+              "name": "get_script_output_path",
+              "line_number": 93,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "notebook_path",
+                  "line_number": 93,
+                  "col_offset": 28,
+                  "type": "str"
+                },
+                {
+                  "name": "conf",
+                  "line_number": 93,
+                  "col_offset": 48,
+                  "type": "MlVToolConf"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_script_output_path(notebook_path: str, conf: MlVToolConf) -> str:\n    \"\"\" Generate python script path according to conf and notebook file name \"\"\"\n    file_name = to_script_name(basename(notebook_path))\n    return join(conf.top_directory, conf.path.python_script_root_dir, file_name)",
+              "signature": "get_script_output_path(notebook_path: str, conf: MlVToolConf) -> str",
+              "full_signature": "get_script_output_path(notebook_path: str, conf: MlVToolConf) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_dvc_cmd_output_path",
+              "line_number": 99,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "script_path",
+                  "line_number": 99,
+                  "col_offset": 29,
+                  "type": "str"
+                },
+                {
+                  "name": "conf",
+                  "line_number": 99,
+                  "col_offset": 47,
+                  "type": "MlVToolConf"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_dvc_cmd_output_path(script_path: str, conf: MlVToolConf) -> str:\n    \"\"\" Generate dvc command path according to conf and python script file name \"\"\"\n    file_name = to_dvc_cmd_name(basename(script_path))\n    return join(conf.top_directory, conf.path.dvc_cmd_root_dir, file_name)",
+              "signature": "get_dvc_cmd_output_path(script_path: str, conf: MlVToolConf) -> str",
+              "full_signature": "get_dvc_cmd_output_path(script_path: str, conf: MlVToolConf) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_dvc_metadata_output_path",
+              "line_number": 105,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "script_path",
+                  "line_number": 105,
+                  "col_offset": 34,
+                  "type": "str"
+                },
+                {
+                  "name": "conf",
+                  "line_number": 105,
+                  "col_offset": 52,
+                  "type": "MlVToolConf"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_dvc_metadata_output_path(script_path: str, conf: MlVToolConf) -> str:\n    \"\"\" Generate dvc metadata path according to conf and python script file name \"\"\"\n    file_name = to_dvc_meta_filename(basename(script_path))\n    return join(conf.top_directory, conf.path.dvc_metadata_root_dir, file_name)",
+              "signature": "get_dvc_metadata_output_path(script_path: str, conf: MlVToolConf) -> str",
+              "full_signature": "get_dvc_metadata_output_path(script_path: str, conf: MlVToolConf) -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_conf_file_default_path",
+              "line_number": 111,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "work_dir",
+                  "line_number": 111,
+                  "col_offset": 32,
+                  "type": "str"
+                }
+              ],
+              "return_type": "str",
+              "body": "def get_conf_file_default_path(work_dir: str) -> str:\n    return join(work_dir, DEFAULT_CONF_FILENAME)",
+              "signature": "get_conf_file_default_path(work_dir: str) -> str",
+              "full_signature": "get_conf_file_default_path(work_dir: str) -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
+          "name": "test_check_consitency",
+          "file_path": "tests/unit/test_check_consitency.py",
+          "functions": [
+            {
+              "name": "create_notebook_and_convert_it",
+              "line_number": 19,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "cells",
+                  "line_number": 19,
+                  "col_offset": 36,
+                  "type": null
+                },
+                {
+                  "name": "script_name",
+                  "line_number": 19,
+                  "col_offset": 43,
+                  "type": null
+                },
+                {
+                  "name": "conf",
+                  "line_number": 19,
+                  "col_offset": 56,
+                  "type": null
+                },
+                {
+                  "name": "work_dir",
+                  "line_number": 19,
+                  "col_offset": 62,
+                  "type": null
+                }
+              ],
+              "return_type": "str",
+              "body": "def create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str:\n    \"\"\"\n        Create a notebook from cells then convert it into a python script\n    \"\"\"\n    notebook_path = gen_notebook(tmp_dir=work_dir, file_name='test.ipynb', docstring=None, cells=cells)\n    script_base_path = join(work_dir, script_name)\n    export_to_script(notebook_path, script_base_path, conf)\n    return notebook_path, script_base_path",
+              "signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
+              "full_signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
+          "name": "test_parse",
+          "file_path": "tests/unit/diff/test_parse.py",
+          "functions": [
+            {
+              "name": "script_base",
+              "line_number": 47,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def script_base() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "script_base() -> str",
+              "full_signature": "script_base() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_base_spaces_and_blank",
+              "line_number": 63,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_base_spaces_and_blank() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\n\n\n\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_base_spaces_and_blank() -> str",
+              "full_signature": "get_script_base_spaces_and_blank() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_diff_comment",
+              "line_number": 83,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_diff_comment() -> str:\n    python_content = \"\"\"\n# This is a different comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    # This a new comment\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_diff_comment() -> str",
+              "full_signature": "get_script_diff_comment() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_diff_docstring",
+              "line_number": 100,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_diff_docstring() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A different docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_diff_docstring() -> str",
+              "full_signature": "get_script_diff_docstring() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_diff",
+              "line_number": 116,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_diff() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return dir_path\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_diff() -> str",
+              "full_signature": "get_script_diff() -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        }
+      ]
     }
-]
+  ]
+}

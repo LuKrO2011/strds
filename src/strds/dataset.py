@@ -16,7 +16,7 @@ from strds.utils.structure import (
     Module,
     Parameter,
     Repository,
-    save_to_json_file,
+    save_to_json_file, Dataset,
 )
 
 console = Console()
@@ -195,7 +195,8 @@ def create_dataset(
             repositories.append(repository)
         else:
             console.log(f"No modules left after filtering: {project.path}")
-    save_to_json_file(repositories, output)
+    dataset = Dataset(repositories=repositories)
+    save_to_json_file(dataset, output)
     if not keep_tmp_dir:
         shutil.rmtree(tmp_dir)
 

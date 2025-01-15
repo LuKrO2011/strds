@@ -1,7 +1,7 @@
 """Information about the data structures used for the dataset."""
 
 import json
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -17,6 +17,13 @@ class Dataset:
     """A data structure representing a dataset."""
 
     repositories: list["Repository"] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Dataset":
+        return cls(
+            repositories=[Repository.from_dict(repo) for repo in
+                          data.get("repositories", [])]
+        )
 
     def sort(self):
         for repo in self.repositories:
@@ -219,25 +226,18 @@ class PathEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def save_to_json_file(repositories: list[Repository], file_path: Path):
+def save_to_json_file(dataset: Dataset, file_path: Path):
     """Serializes a list of Repository objects into JSON and writes to a file."""
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(file_path, "w", encoding="utf-8") as json_file:
-        json.dump(
-            [asdict(repo) for repo in repositories],
-            json_file,
-            indent=4,
-            ensure_ascii=False,
-            cls=PathEncoder,
-        )
+        json.dump(asdict(dataset), json_file, cls=PathEncoder, indent=2)
 
 
 def load_from_json_file(file_path: Path) -> Dataset:
     """Loads a JSON file and parses it into a list of Repository objects."""
     with open(file_path, encoding="utf-8") as json_file:
         data = json.load(json_file)
-        repositories = [Repository.from_dict(repo) for repo in data]
-        return Dataset(repositories=repositories).sort()
+        return Dataset.from_dict(data)
 
 
 def clone(repository: Repository, output_dir: Path) -> Path:

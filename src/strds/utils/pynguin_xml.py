@@ -2,7 +2,8 @@ import xml.etree.ElementTree as ET  # noqa: S405
 from dataclasses import dataclass
 from pathlib import Path
 
-from strds.utils.structure import Module, Repository
+from strds.utils.structure import Module, Repository, Dataset
+
 
 # TODO: Use "--ignore_methods" and specify all methods but one. Modify
 #  `pynguin-experiments/prepare_experiment.py` to allow this. Then add all methods
@@ -24,9 +25,9 @@ class Project:
     modules: tuple[str, ...]
 
 
-def create_pynguin_xmls(repos: list[Repository], output_path: Path) -> None:
+def create_pynguin_xmls(repos: Dataset, output_path: Path) -> None:
     """Creates Pynguin XML files for the given repositories."""
-    projects = {repo.name: create_pynguin_project(repo) for repo in repos}
+    projects = {repo.name: create_pynguin_project(repo) for repo in repos.repositories}
     write_xml(projects, output_path)
 
 

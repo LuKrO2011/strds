@@ -8,7 +8,7 @@ import libcst as cst
 from rich.console import Console
 
 from strds.utils.pynguin_xml import create_pynguin_xmls
-from strds.utils.structure import Repository, clone, load_from_json_file
+from strds.utils.structure import Repository, clone, load_from_json_file, Dataset
 
 console = Console()
 
@@ -42,10 +42,10 @@ def remove_type_annotations(code: str) -> str:
 
 
 def extract_callables(
-    repositories: list[Repository], output_dir: Path, without_type_annotations: bool
+    dataset: Dataset, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Extract and store the methods from the repositories."""
-    for repo in repositories:
+    for repo in dataset.repositories:
         for module in repo.modules:
             for cls in module.classes:
                 for method in cls.methods:
@@ -87,10 +87,10 @@ def create_requirements_file(repo_dir: Path, repo: Repository) -> None:
 
 
 def save_all_code(
-    repositories: list[Repository], output_dir: Path, without_type_annotations: bool
+    dataset: Dataset, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Clones all repositories and removes type annotations if specified."""
-    for repo in repositories:
+    for repo in dataset.repositories:
         repo_dir = clone(repo, output_dir)
         if without_type_annotations:
             for file in repo_dir.rglob("*.py"):
@@ -129,9 +129,9 @@ def cli():
 def methods(dataset: Path, output_dir: Path, without_type_annotations: bool) -> None:
     """Provides the methods as they are stored in the JSON."""
     console.log(f"Loading dataset from {dataset}")
-    repositories = load_from_json_file(dataset)
+    loaded_dataset = load_from_json_file(dataset)
     output_dir.mkdir(parents=True, exist_ok=True)
-    extract_callables(repositories, output_dir, without_type_annotations)
+    extract_callables(loaded_dataset, output_dir, without_type_annotations)
 
 
 @cli.command()
@@ -158,9 +158,9 @@ def repositories(
 ) -> None:
     """Clones the projects to provide all code."""
     console.log(f"Loading dataset from {dataset}")
-    repositories = load_from_json_file(dataset)
+    loaded_dataset = load_from_json_file(dataset)
     output_dir.mkdir(parents=True, exist_ok=True)
-    save_all_code(repositories, output_dir, without_type_annotations)
+    save_all_code(loaded_dataset, output_dir, without_type_annotations)
 
 
 @cli.command()
@@ -179,11 +179,11 @@ def repositories(
 def pynguin(dataset: Path, output_path: Path) -> None:
     """Creates a directory with pynguin .xml files."""
     console.log(f"Loading dataset from {dataset}")
-    repositories = load_from_json_file(dataset)
+    loaded_dataset = load_from_json_file(dataset)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.is_file():
         output_path.unlink()
-    create_pynguin_xmls(repositories, output_path)
+    create_pynguin_xmls(loaded_dataset, output_path)
 
 
 if __name__ == "__main__":
