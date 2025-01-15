@@ -82,3 +82,10 @@ class FilterFactory:
         if not filter_class:
             raise ValueError(f"Unknown filter: {filter_name}")
         return filter_class()
+
+
+def create_filters(filter_names: list[str] | str) -> list[Filter]:
+    """Create a list of filters from a list of filter names."""
+    if isinstance(filter_names, str):
+        filter_names = filter_names.split(",")
+    return [FilterFactory.from_string(name) for name in filter_names]

@@ -13,6 +13,19 @@ if TYPE_CHECKING:
 
 
 @dataclass
+class Dataset:
+    """A data structure representing a dataset."""
+
+    repositories: list["Repository"] = field(default_factory=list)
+
+    def sort(self):
+        for repo in self.repositories:
+            repo.sort()
+        self.repositories = sorted(self.repositories)
+        return self
+
+
+@dataclass
 class Repository:
     """A data structure representing a repository."""
 
@@ -45,6 +58,15 @@ class Repository:
             self = filter_.apply(self)
         return self
 
+    def sort(self):
+        for module in self.modules:
+            module.sort()
+        self.modules = sorted(self.modules)
+        return self
+
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 @dataclass
 class Module:
@@ -64,6 +86,18 @@ class Module:
             classes=[Class.from_dict(cls) for cls in data.get("classes", [])],
         )
 
+    def sort(self):
+        for func in self.functions:
+            func.sort()
+        self.functions = sorted(self.functions)
+        for cls in self.classes:
+            cls.sort()
+        self.classes = sorted(self.classes)
+        return self
+
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 @dataclass
 class Locatable(ABC):
@@ -72,6 +106,9 @@ class Locatable(ABC):
     name: str
     line_number: int
     col_offset: int
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 @dataclass
@@ -100,6 +137,10 @@ class Callable(Locatable):
             full_signature=data["full_signature"],
             annotations=data.get("annotations", ""),
         )
+
+    def sort(self):
+        self.parameters = sorted(self.parameters)
+        return self
 
 
 @dataclass
@@ -143,6 +184,17 @@ class Class:
             fields=data.get("fields", []),
         )
 
+    def sort(self):
+        for method in self.methods:
+            method.sort()
+        self.methods = sorted(self.methods)
+        self.superclasses = sorted(self.superclasses)
+        self.fields = sorted(self.fields)
+        return self
+
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 @dataclass
 class Parameter(Locatable):
@@ -180,11 +232,12 @@ def save_to_json_file(repositories: list[Repository], file_path: Path):
         )
 
 
-def load_from_json_file(file_path: Path) -> list[Repository]:
+def load_from_json_file(file_path: Path) -> Dataset:
     """Loads a JSON file and parses it into a list of Repository objects."""
     with open(file_path, encoding="utf-8") as json_file:
         data = json.load(json_file)
-        return [Repository.from_dict(repo) for repo in data]
+        repositories = [Repository.from_dict(repo) for repo in data]
+        return Dataset(repositories=repositories).sort()
 
 
 def clone(repository: Repository, output_dir: Path) -> Path:
