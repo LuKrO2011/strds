@@ -32,9 +32,7 @@ def _col_offset_param(node: ast.AST) -> int:
     """
     if hasattr(node, "col_offset"):
         return int(node.col_offset) + 1
-    raise AttributeError(
-        f"{type(node).__name__} does not have a 'col_offset' attribute."
-    )
+    raise AttributeError(f"{type(node).__name__} does not have a 'col_offset' attribute.")
 
 
 def _col_offset_callable(node: ast.AST) -> int:
@@ -46,9 +44,7 @@ def _col_offset_callable(node: ast.AST) -> int:
     """
     if hasattr(node, "col_offset"):
         return int(node.col_offset) + 1 + len("def ")
-    raise AttributeError(
-        f"{type(node).__name__} does not have a 'col_offset' attribute."
-    )
+    raise AttributeError(f"{type(node).__name__} does not have a 'col_offset' attribute.")
 
 
 def _line_offset(node: ast.AST) -> int:
@@ -91,9 +87,7 @@ def parse_class(node: ast.ClassDef, file: Path) -> Class:
         if isinstance(item, ast.FunctionDef):
             methods.append(parse_method(item, file, node.name))
         elif isinstance(item, ast.Assign):
-            fields.extend(
-                [target.id for target in item.targets if isinstance(target, ast.Name)]
-            )
+            fields.extend([target.id for target in item.targets if isinstance(target, ast.Name)])
     superclasses = [base.id for base in node.bases if isinstance(base, ast.Name)]
     return Class(
         name=node.name,
@@ -119,9 +113,7 @@ def parse_method(node: ast.FunctionDef, file: Path, class_name: str) -> Method:
     )
 
 
-def craft_signature(
-    name: str, parameters: list[Parameter], return_type: str | None
-) -> str:
+def craft_signature(name: str, parameters: list[Parameter], return_type: str | None) -> str:
     """Crafts a function signature from its name and parameters."""
     signature = "("
     if parameters:
@@ -138,9 +130,7 @@ def craft_signature(
     return f"{name}{signature}"
 
 
-def extract_info(
-    file: Path, node: ast.FunctionDef
-) -> tuple[str, list[Parameter], str | None, str]:
+def extract_info(file: Path, node: ast.FunctionDef) -> tuple[str, list[Parameter], str | None, str]:
     """Extracts body, parameters, return type, and signature from a function node."""
     parameters = [parse_parameter(arg) for arg in node.args.args]
     body = ast.get_source_segment(Path(file).read_text("utf-8"), node) or ""
@@ -176,16 +166,14 @@ def parse_repository(project: LocalProject) -> Repository:
         try:
             module = parse_module(file_path, relative_to=project.path)
             modules.append(module)
-        except SyntaxError as e:
+        except SyntaxError as e:  # noqa: PERF203
             console.log(f"SyntaxError: {file_path}: {e}")
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # noqa: BLE001
             console.log(f"Error parsing {file_path}: {e}")
     return Repository(
         name=project.project.project_name,
         url=project.project.github_url,
-        pypi_tag=project.project.matching_github_tag
-        or project.project.pypi_latest_tag
-        or "latest",
+        pypi_tag=project.project.matching_github_tag or project.project.pypi_latest_tag or "latest",
         modules=modules,
         git_commit_hash=project.git_commit_hash,
     )
@@ -194,6 +182,7 @@ def parse_repository(project: LocalProject) -> Repository:
 def create_dataset(
     csv_file: Path,
     tmp_dir: Path,
+    *,
     keep_tmp_dir: bool = False,
     output: Path = Path("output.json"),
     filters: list[Filter] | None = None,
@@ -252,9 +241,7 @@ def create_dataset(
     default="NoStringTypeFilter,EmptyFilter",
     type=str,
 )
-def cli(
-    csv_file: Path, tmp_dir: Path, keep_tmp_dir: bool, output: Path, filters: str
-) -> None:
+def cli(csv_file: Path, tmp_dir: Path, output: Path, filters: str, *, keep_tmp_dir: bool) -> None:
     """Parse a Python repository and output its information as dataset."""
     parsed_filters = create_filters(filters)
     create_dataset(csv_file, tmp_dir, keep_tmp_dir, output, parsed_filters)

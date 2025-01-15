@@ -27,17 +27,17 @@ def remove_type_annotations(code: str) -> str:
     class RemoveAnnotationsTransformer(cst.CSTTransformer):
         """A transformer to remove type annotations from a code snippet."""
 
-        def leave_AnnAssign(
+        def leave_AnnAssign(  # noqa: N802
             self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
         ) -> cst.BaseSmallStatement:
             return updated_node.with_changes(annotation=None)
 
-        def leave_Param(
+        def leave_Param(  # noqa: N802
             self, original_node: cst.Param, updated_node: cst.Param
         ) -> cst.Param:
             return updated_node.with_changes(annotation=None)
 
-        def leave_FunctionDef(
+        def leave_FunctionDef(  # noqa: N802
             self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
         ) -> cst.FunctionDef:
             return updated_node.with_changes(returns=None)
@@ -46,13 +46,13 @@ def remove_type_annotations(code: str) -> str:
         tree = cst.parse_module(code)
         modified_tree = tree.visit(RemoveAnnotationsTransformer())
         return modified_tree.code
-    except Exception as e:  # pylint: disable=broad-exception-caught
+    except Exception as e:  # noqa: BLE001
         console.print(f"[red]Failed to remove type annotations: {e}[/red]")
         return code
 
 
 def extract_callables(
-    dataset: Dataset, output_dir: Path, without_type_annotations: bool
+    dataset: Dataset, output_dir: Path, *, without_type_annotations: bool
 ) -> None:
     """Extract and store the methods from the repositories."""
     for repo in dataset.repositories:
@@ -61,12 +61,22 @@ def extract_callables(
                 for method in cls.methods:
                     code = method.body
                     file_path = method_path(repo, module, cls, method)
-                    save_callable(code, output_dir, file_path, without_type_annotations)
+                    save_callable(
+                        code,
+                        output_dir,
+                        file_path,
+                        without_type_annotations=without_type_annotations,
+                    )
 
             for function in module.functions:
                 code = function.body
                 file_path = function_path(repo, module, function)
-                save_callable(code, output_dir, file_path, without_type_annotations)
+                save_callable(
+                    code,
+                    output_dir,
+                    file_path,
+                    without_type_annotations=without_type_annotations,
+                )
 
 
 def method_path(repo: Repository, module: Module, cls: Class, method: Method) -> Path:
@@ -80,7 +90,7 @@ def function_path(repo: Repository, module: Module, function: Function) -> Path:
 
 
 def save_callable(
-    code: str, output_dir: Path, file_path: Path, without_type_annotations: bool
+    code: str, output_dir: Path, file_path: Path, *, without_type_annotations: bool
 ) -> None:
     """Saves a callable to a file."""
     if without_type_annotations:
@@ -96,9 +106,7 @@ def create_requirements_file(repo_dir: Path, repo: Repository) -> None:
     output_file.write_text(f"{repo.name}=={repo.pypi_tag}")
 
 
-def save_all_code(
-    dataset: Dataset, output_dir: Path, without_type_annotations: bool
-) -> None:
+def save_all_code(dataset: Dataset, output_dir: Path, *, without_type_annotations: bool) -> None:
     """Clones all repositories and removes type annotations if specified."""
     for repo in dataset.repositories:
         repo_dir = clone(repo, output_dir)
@@ -111,24 +119,20 @@ def save_all_code(
         create_requirements_file(repo_dir, repo)
 
 
-def run_methods(
-    dataset: Path, output_dir: Path, without_type_annotations: bool
-) -> None:
+def run_methods(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
     """Runs the provide methods command."""
     console.log(f"Loading dataset from {dataset}")
     loaded_dataset = load_from_json_file(dataset)
     output_dir.mkdir(parents=True, exist_ok=True)
-    extract_callables(loaded_dataset, output_dir, without_type_annotations)
+    extract_callables(loaded_dataset, output_dir, without_type_annotations=without_type_annotations)
 
 
-def run_repositories(
-    dataset: Path, output_dir: Path, without_type_annotations: bool
-) -> None:
+def run_repositories(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
     """Runs the provide repositories command."""
     console.log(f"Loading dataset from {dataset}")
     loaded_dataset = load_from_json_file(dataset)
     output_dir.mkdir(parents=True, exist_ok=True)
-    save_all_code(loaded_dataset, output_dir, without_type_annotations)
+    save_all_code(loaded_dataset, output_dir, without_type_annotations=without_type_annotations)
 
 
 def run_pynguin(dataset: Path, output_path: Path) -> None:
@@ -165,9 +169,9 @@ def cli() -> None:
     default=False,
     help="Remove type annotations from the provided methods.",
 )
-def methods(dataset: Path, output_dir: Path, without_type_annotations: bool) -> None:
+def methods(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
     """Provides the methods as they are stored in the JSON."""
-    run_methods(dataset, output_dir, without_type_annotations)
+    run_methods(dataset, output_dir, without_type_annotations=without_type_annotations)
 
 
 @cli.command()
@@ -189,11 +193,9 @@ def methods(dataset: Path, output_dir: Path, without_type_annotations: bool) -> 
     default=False,
     help="Remove type annotations from the code.",
 )
-def repositories(
-    dataset: Path, output_dir: Path, without_type_annotations: bool
-) -> None:
+def repositories(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
     """Clones the projects to provide all code."""
-    run_repositories(dataset, output_dir, without_type_annotations)
+    run_repositories(dataset, output_dir, without_type_annotations=without_type_annotations)
 
 
 @cli.command()

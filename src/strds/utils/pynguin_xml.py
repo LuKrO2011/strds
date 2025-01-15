@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from defusedxml.ElementTree import parse
+
 from strds.utils.structure import Dataset, Module, Repository
 
 
@@ -76,9 +78,7 @@ def _parse_modules(modules_element: ET.Element | None) -> tuple[str, ...]:
     """Parses the modules from the given XML element."""
     if modules_element is not None and isinstance(modules_element, ET.Element):
         modules = tuple(
-            _get_text(module)
-            for module in modules_element
-            if isinstance(module, ET.Element)
+            _get_text(module) for module in modules_element if isinstance(module, ET.Element)
         )
     else:
         modules = ()
@@ -94,7 +94,7 @@ def read_xml(file: Path) -> dict[str, Project]:
     Returns:
         The projects
     """
-    tree = ET.parse(file)
+    tree = parse(file)
     root = tree.getroot()
     projects = {}
     for project in root:

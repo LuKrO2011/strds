@@ -23,25 +23,26 @@ class EmptyFilter(Filter):  # pylint: disable=too-few-public-methods
     """
 
     def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
         # Remove empty classes
         for module in repository.modules:
             module.classes = [cls for cls in module.classes if cls.methods]
 
         # Remove empty modules
         repository.modules = [
-            module
-            for module in repository.modules
-            if module.classes or module.functions
+            module for module in repository.modules if module.classes or module.functions
         ]
         return repository
 
 
 class NoStringTypeFilter(Filter):  # pylint: disable=too-few-public-methods
     """Removes all functions and methods without a 'str' parameter or return type.
+
     Does not consider list[str], dict[str, str] etc.
     """
 
     def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
         for module in repository.modules:
             module.functions = [
                 func
