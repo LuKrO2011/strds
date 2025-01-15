@@ -121,7 +121,4 @@ pylint:
 	poetry run pylint src/
 
 .PHONY: check
-check: isort black mypy ruff pyupgrade test
-
-.PHONY: lint
-lint: test check-safety check-style pylint
+check: isort black mypy ruff pyupgrade test check-safety check-style

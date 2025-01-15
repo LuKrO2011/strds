@@ -28,7 +28,7 @@ To set up the project and its dependencies, follow these steps:
    ```
 
 2. Install Python 3.13 and pip, if you haven't already.
-   
+
     - Windows: [Python](https://www.python.org/downloads/release/python), [Pip](https://pip.pypa.io/en/stable/installation/)
     - Ubuntu:
       ```bash

@@ -19,7 +19,7 @@ class Dataset:
     repositories: list["Repository"] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Dataset":  # type: ignore
+    def from_dict(cls, data: dict) -> "Dataset":  # type: ignore[type-arg]
         """Create a Dataset object from a dictionary."""
         return cls(
             repositories=[
@@ -46,7 +46,7 @@ class Repository:
     modules: list["Module"] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Repository":  # type: ignore
+    def from_dict(cls, data: dict) -> "Repository":  # type: ignore[type-arg]
         """Create a Repository object from a dictionary."""
         return cls(
             name=data["name"],
@@ -91,7 +91,7 @@ class Module:
     classes: list["Class"] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Module":  # type: ignore
+    def from_dict(cls, data: dict) -> "Module":  # type: ignore[type-arg]
         """Create a Module object from a dictionary."""
         return cls(
             name=data["name"],
@@ -138,7 +138,7 @@ class Callable(Locatable):
     annotations: str | None = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Callable":  # type: ignore
+    def from_dict(cls, data: dict) -> "Callable":  # type: ignore[type-arg]
         """Create a Callable object from a dictionary."""
         return cls(
             name=data["name"],
@@ -165,7 +165,7 @@ class Function(Callable):
     """A data structure representing a standalone function."""
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Function":  # type: ignore
+    def from_dict(cls, data: dict) -> "Function":  # type: ignore[type-arg]
         """Create a Function object from a dictionary."""
         return cls(**Callable.from_dict(data).__dict__)
 
@@ -177,7 +177,7 @@ class Method(Callable):
     is_constructor: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Method":  # type: ignore
+    def from_dict(cls, data: dict) -> "Method":  # type: ignore[type-arg]
         """Create a Method object from a dictionary."""
         return cls(
             **Callable.from_dict(data).__dict__,
@@ -195,7 +195,7 @@ class Class:
     fields: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Class":  # type: ignore
+    def from_dict(cls, data: dict) -> "Class":  # type: ignore[type-arg]
         """Create a Class object from a dictionary."""
         return cls(
             name=data["name"],
@@ -224,7 +224,7 @@ class Parameter(Locatable):
     type: str | None = None
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Parameter":  # type: ignore
+    def from_dict(cls, data: dict) -> "Parameter":  # type: ignore[type-arg]
         """Create a Parameter object from a dictionary."""
         return cls(
             name=data["name"],
@@ -247,13 +247,13 @@ class PathEncoder(json.JSONEncoder):
 def save_to_json_file(dataset: Dataset, file_path: Path) -> None:
     """Serializes a list of Repository objects into JSON and writes to a file."""
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(file_path, "w", encoding="utf-8") as json_file:
+    with Path.open(file_path, "w", encoding="utf-8") as json_file:
         json.dump(asdict(dataset), json_file, cls=PathEncoder, indent=2)
 
 
 def load_from_json_file(file_path: Path) -> Dataset:
     """Loads a JSON file and parses it into a list of Repository objects."""
-    with open(file_path, encoding="utf-8") as json_file:
+    with Path.open(file_path, encoding="utf-8") as json_file:
         data = json.load(json_file)
         return Dataset.from_dict(data)
 

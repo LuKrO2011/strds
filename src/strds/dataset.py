@@ -176,9 +176,9 @@ def parse_repository(project: LocalProject) -> Repository:
         try:
             module = parse_module(file_path, relative_to=project.path)
             modules.append(module)
-        except SyntaxError as e:
+        except SyntaxError as e:  # noqa: PERF203
             console.log(f"SyntaxError: {file_path}: {e}")
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # noqa: BLE001
             console.log(f"Error parsing {file_path}: {e}")
     return Repository(
         name=project.project.project_name,
@@ -194,6 +194,7 @@ def parse_repository(project: LocalProject) -> Repository:
 def create_dataset(
     csv_file: Path,
     tmp_dir: Path,
+    *,
     keep_tmp_dir: bool = False,
     output: Path = Path("output.json"),
     filters: list[Filter] | None = None,
@@ -253,11 +254,17 @@ def create_dataset(
     type=str,
 )
 def cli(
-    csv_file: Path, tmp_dir: Path, keep_tmp_dir: bool, output: Path, filters: str
+    csv_file: Path, tmp_dir: Path, output: Path, filters: str, *, keep_tmp_dir: bool
 ) -> None:
     """Parse a Python repository and output its information as dataset."""
     parsed_filters = create_filters(filters)
-    create_dataset(csv_file, tmp_dir, keep_tmp_dir, output, parsed_filters)
+    create_dataset(
+        csv_file,
+        tmp_dir,
+        keep_tmp_dir=keep_tmp_dir,
+        output=output,
+        filters=parsed_filters,
+    )
 
 
 if __name__ == "__main__":

@@ -73,7 +73,7 @@ def parse_optional_field(field: str) -> str | None:
 def parse_csv(file_path: Path) -> list[FlaPyProject]:
     """Reads a CSV file and converts rows into a list of dataclass objects."""
     projects = []
-    with open(file_path, encoding="utf-8") as csv_file:
+    with Path.open(file_path, encoding="utf-8") as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
             project = FlaPyProject(

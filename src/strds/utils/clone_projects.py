@@ -98,7 +98,7 @@ def __checkout(repo: git.Repo, version: str, *, hard: bool = False) -> None:
                 repo.git.checkout(variant)
             CONSOLE.print(f"Successfully checked out {variant}")
             return
-        except git.GitCommandError:
+        except git.GitCommandError:  # noqa: PERF203
             pass
 
     CONSOLE.print(f"Could not checkout version {version}; using default branch.")
@@ -126,6 +126,7 @@ def __checkout_flapy_style(repo: git.Repo, version: str) -> None:
 def clone_projects(
     csv_file: Path,
     output_path: Path,
+    *,
     flapy_style: bool = False,
     overwrite: bool = False,
 ) -> list[LocalProject]:
@@ -183,7 +184,9 @@ def clone_projects(
     is_flag=True,
     default=False,
 )
-def cli(csv_file: Path, output_path: Path, flapy_style: bool, overwrite: bool) -> None:
+def cli(
+    csv_file: Path, output_path: Path, *, flapy_style: bool, overwrite: bool
+) -> None:
     """Clone projects from a CSV file and validate the presence of module files.
 
     Args:
@@ -192,7 +195,7 @@ def cli(csv_file: Path, output_path: Path, flapy_style: bool, overwrite: bool) -
         flapy_style: Whether to use flapy style for checking out versions.
         overwrite: Whether to overwrite existing project directories.
     """
-    clone_projects(csv_file, output_path, flapy_style, overwrite)
+    clone_projects(csv_file, output_path, flapy_style=flapy_style, overwrite=overwrite)
 
 
 if __name__ == "__main__":
