@@ -4,7 +4,7 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from strds.utils.clone_projects import clone_repository
 
@@ -19,14 +19,14 @@ class Dataset:
     repositories: list["Repository"] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Dataset":
+    def from_dict(cls, data: dict) -> "Dataset":  # type: ignore
         return cls(
             repositories=[
                 Repository.from_dict(repo) for repo in data.get("repositories", [])
             ]
         )
 
-    def sort(self):
+    def sort(self) -> "Dataset":
         for repo in self.repositories:
             repo.sort()
         self.repositories = sorted(self.repositories)
@@ -44,7 +44,7 @@ class Repository:
     modules: list["Module"] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Repository":
+    def from_dict(cls, data: dict) -> "Repository":  # type: ignore
         return cls(
             name=data["name"],
             pypi_tag=data["pypi_tag"],
@@ -66,13 +66,13 @@ class Repository:
             self = filter_.apply(self)
         return self
 
-    def sort(self):
+    def sort(self) -> "Repository":
         for module in self.modules:
             module.sort()
         self.modules = sorted(self.modules)
         return self
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Repository") -> bool:
         return self.name < other.name
 
 
@@ -86,7 +86,7 @@ class Module:
     classes: list["Class"] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Module":
+    def from_dict(cls, data: dict) -> "Module":  # type: ignore
         return cls(
             name=data["name"],
             file_path=Path(data["file_path"]),
@@ -94,7 +94,7 @@ class Module:
             classes=[Class.from_dict(cls) for cls in data.get("classes", [])],
         )
 
-    def sort(self):
+    def sort(self) -> "Module":
         for func in self.functions:
             func.sort()
         self.functions = sorted(self.functions)
@@ -103,7 +103,7 @@ class Module:
         self.classes = sorted(self.classes)
         return self
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Module") -> bool:
         return self.name < other.name
 
 
@@ -115,7 +115,7 @@ class Locatable(ABC):
     line_number: int
     col_offset: int
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Locatable") -> bool:
         return self.name < other.name
 
 
@@ -131,7 +131,7 @@ class Callable(Locatable):
     annotations: str | None = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Callable":
+    def from_dict(cls, data: dict) -> "Callable":  # type: ignore
         return cls(
             name=data["name"],
             line_number=data["line_number"],
@@ -146,7 +146,7 @@ class Callable(Locatable):
             annotations=data.get("annotations", ""),
         )
 
-    def sort(self):
+    def sort(self: "Callable") -> "Callable":
         self.parameters = sorted(self.parameters)
         return self
 
@@ -156,7 +156,7 @@ class Function(Callable):
     """A data structure representing a standalone function."""
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Function":
+    def from_dict(cls, data: dict) -> "Function":  # type: ignore
         return cls(**Callable.from_dict(data).__dict__)
 
 
@@ -167,7 +167,7 @@ class Method(Callable):
     is_constructor: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Method":
+    def from_dict(cls, data: dict) -> "Method":  # type: ignore
         return cls(
             **Callable.from_dict(data).__dict__,
             is_constructor=data.get("is_constructor", False),
@@ -184,7 +184,7 @@ class Class:
     fields: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Class":
+    def from_dict(cls, data: dict) -> "Class":  # type: ignore
         return cls(
             name=data["name"],
             methods=[Method.from_dict(method) for method in data.get("methods", [])],
@@ -192,7 +192,7 @@ class Class:
             fields=data.get("fields", []),
         )
 
-    def sort(self):
+    def sort(self) -> "Class":
         for method in self.methods:
             method.sort()
         self.methods = sorted(self.methods)
@@ -200,7 +200,7 @@ class Class:
         self.fields = sorted(self.fields)
         return self
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Class") -> bool:
         return self.name < other.name
 
 
@@ -211,7 +211,7 @@ class Parameter(Locatable):
     type: str | None = None
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Parameter":
+    def from_dict(cls, data: dict) -> "Parameter":  # type: ignore
         return cls(
             name=data["name"],
             line_number=data["line_number"],
@@ -221,13 +221,13 @@ class Parameter(Locatable):
 
 
 class PathEncoder(json.JSONEncoder):
-    def default(self, obj):
+    def default(self, obj: object) -> Any:
         if isinstance(obj, Path):
             return str(obj)
         return super().default(obj)
 
 
-def save_to_json_file(dataset: Dataset, file_path: Path):
+def save_to_json_file(dataset: Dataset, file_path: Path) -> None:
     """Serializes a list of Repository objects into JSON and writes to a file."""
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(file_path, "w", encoding="utf-8") as json_file:

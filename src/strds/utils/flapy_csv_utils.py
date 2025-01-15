@@ -1,6 +1,7 @@
 """Utilities for parsing CSV files containing FlaPy project data."""
 
 import csv
+from ast import literal_eval
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -25,14 +26,24 @@ class FlaPyProject:
 def parse_list_field(field: str) -> list[Any]:
     """Parses a list field from the CSV (string is in Python list format)."""
     if field and field.startswith("[") and field.endswith("]"):
-        return eval(field)
+        try:
+            parsed_field = literal_eval(field)
+            if isinstance(parsed_field, list):
+                return parsed_field
+        except (ValueError, SyntaxError):
+            pass
     return []
 
 
 def parse_dict_field(field: str) -> dict[str, Any]:
     """Parses a dictionary field from the CSV (string is in Python dict format)."""
     if field and field.startswith("{") and field.endswith("}"):
-        return eval(field)
+        try:
+            parsed_field = literal_eval(field)
+            if isinstance(parsed_field, dict):
+                return parsed_field
+        except (ValueError, SyntaxError):
+            pass
     return {}
 
 

@@ -133,7 +133,7 @@ def clone_projects(
         try:
             clone_repository(
                 project.github_url,
-                project.matching_github_tag or project.pypi_latest_tag,
+                project.matching_github_tag or project.pypi_latest_tag or "master",
                 target_path,
                 flapy_style=flapy_style,
                 overwrite=overwrite,

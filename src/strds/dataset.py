@@ -8,7 +8,7 @@ import click
 from rich.console import Console
 
 from strds.utils.clone_projects import LocalProject, clone_projects
-from strds.utils.filter import Filter, FilterFactory
+from strds.utils.filter import Filter, FilterFactory, create_filters
 from strds.utils.structure import (
     Class,
     Dataset,
@@ -29,7 +29,11 @@ def _col_offset_param(node: ast.AST) -> int:
     We add 1 to the column offset to make it 1-indexed so that it matches the cursor
     position.
     """
-    return node.col_offset + 1
+    if hasattr(node, "col_offset"):
+        return int(node.col_offset) + 1
+    raise AttributeError(
+        f"{type(node).__name__} does not have a 'col_offset' attribute."
+    )
 
 
 def _col_offset_callable(node: ast.AST) -> int:
@@ -39,12 +43,18 @@ def _col_offset_callable(node: ast.AST) -> int:
     for the "def " keyword. Therewith it matches the cursor position at the start of
     the function name.
     """
-    return node.col_offset + 1 + len("def ")
+    if hasattr(node, "col_offset"):
+        return int(node.col_offset) + 1 + len("def ")
+    raise AttributeError(
+        f"{type(node).__name__} does not have a 'col_offset' attribute."
+    )
 
 
 def _line_offset(node: ast.AST) -> int:
     """Returns the line offset of the node."""
-    return node.lineno
+    if hasattr(node, "lineno"):
+        return int(node.lineno)
+    raise AttributeError(f"{type(node).__name__} does not have a 'lineno' attribute.")
 
 
 def parse_parameter(node: ast.arg) -> Parameter:
@@ -129,7 +139,7 @@ def craft_signature(
 
 def extract_info(
     file: Path, node: ast.FunctionDef
-) -> tuple[str, list[Parameter], str, str | None]:
+) -> tuple[str, list[Parameter], str | None, str]:
     """Extracts body, parameters, return type, and signature from a function node."""
     parameters = [parse_parameter(arg) for arg in node.args.args]
     body = ast.get_source_segment(Path(file).read_text(), node) or ""
@@ -172,7 +182,9 @@ def parse_repository(project: LocalProject) -> Repository:
     return Repository(
         name=project.project.project_name,
         url=project.project.github_url,
-        pypi_tag=project.project.matching_github_tag or project.project.pypi_latest_tag,
+        pypi_tag=project.project.matching_github_tag
+        or project.project.pypi_latest_tag
+        or "latest",
         modules=modules,
         git_commit_hash=project.git_commit_hash,
     )
@@ -183,7 +195,7 @@ def create_dataset(
     tmp_dir: Path,
     keep_tmp_dir: bool = False,
     output: Path = Path("output.json"),
-    filters: list[Filter] = None,
+    filters: list[Filter] | None = None,
 ) -> None:
     """Create a dataset from the given CSV file."""
     projects: list[LocalProject] = clone_projects(csv_file, tmp_dir)
@@ -191,6 +203,8 @@ def create_dataset(
     for project in projects:
         console.log(f"Parsing: {project.path}")
         repository = parse_repository(project)
+        # if filters:
+        #     repository = repository.apply(filters)
         repository = repository.apply(filters)
         if repository.modules:
             repositories.append(repository)
@@ -237,10 +251,12 @@ def create_dataset(
     default="NoStringTypeFilter,EmptyFilter",
     type=str,
 )
-def cli(csv_file: Path, tmp_dir: Path, keep_tmp_dir: bool, output: Path, filters: str):
+def cli(
+    csv_file: Path, tmp_dir: Path, keep_tmp_dir: bool, output: Path, filters: str
+) -> None:
     """Parse a Python repository and output its information as dataset."""
-    filters = [FilterFactory().from_string(f) for f in filters.split(",")]
-    create_dataset(csv_file, tmp_dir, keep_tmp_dir, output, filters)
+    parsed_filters = create_filters(filters)
+    create_dataset(csv_file, tmp_dir, keep_tmp_dir, output, parsed_filters)
 
 
 if __name__ == "__main__":

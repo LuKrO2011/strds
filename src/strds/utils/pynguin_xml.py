@@ -1,9 +1,9 @@
 import xml.etree.ElementTree as ET  # noqa: S405
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from strds.utils.structure import Dataset, Module, Repository
-
 
 # TODO: Use "--ignore_methods" and specify all methods but one. Modify
 #  `pynguin-experiments/prepare_experiment.py` to allow this. Then add all methods
@@ -71,6 +71,26 @@ def write_xml(projects: dict[str, Project], out_file: Path) -> None:
     tree.write(out_file, encoding="unicode", xml_declaration=True)
 
 
+def _get_text(element: ET.Element | Any | None) -> str:
+    """Safely gets the text of an XML element."""
+    if isinstance(element, ET.Element):
+        return element.text if element.text is not None else ""
+    return ""
+
+
+def _parse_modules(modules_element: ET.Element | None) -> tuple[str, ...]:
+    """Parses the modules from the given XML element."""
+    if modules_element is not None and isinstance(modules_element, ET.Element):
+        modules = tuple(
+            _get_text(module)
+            for module in modules_element
+            if isinstance(module, ET.Element)
+        )
+    else:
+        modules = tuple()
+    return modules
+
+
 def read_xml(file: Path) -> dict[str, Project]:
     """Reads the projects from the given XML file.
 
@@ -84,11 +104,12 @@ def read_xml(file: Path) -> dict[str, Project]:
     root = tree.getroot()
     projects = {}
     for project in root:
-        project_name = project.find("name").text
-        version = project.find("version").text
-        repository_url = project.find("repository").text
-        sources = project.find("sources").text
-        modules = tuple(module.text for module in project.find("modules"))
+        project_name = _get_text(project.find("name"))
+        version = _get_text(project.find("version"))
+        repository_url = _get_text(project.find("repository"))
+        sources = _get_text(project.find("sources"))
+        modules_element = project.find("modules")
+        modules = _parse_modules(modules_element)
         projects[project_name] = Project(
             project_name=project_name,
             version=version,
