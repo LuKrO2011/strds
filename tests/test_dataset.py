@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.strds.dataset import create_dataset
+from strds.dataset import create_dataset
 from strds.utils.filter import create_filters
 from strds.utils.structure import load_from_json_file
 
