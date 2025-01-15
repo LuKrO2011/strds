@@ -30,7 +30,9 @@ class EmptyFilter(Filter):  # pylint: disable=too-few-public-methods
 
         # Remove empty modules
         repository.modules = [
-            module for module in repository.modules if module.classes or module.functions
+            module
+            for module in repository.modules
+            if module.classes or module.functions
         ]
         return repository
 

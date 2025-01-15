@@ -78,7 +78,9 @@ def _parse_modules(modules_element: ET.Element | None) -> tuple[str, ...]:
     """Parses the modules from the given XML element."""
     if modules_element is not None and isinstance(modules_element, ET.Element):
         modules = tuple(
-            _get_text(module) for module in modules_element if isinstance(module, ET.Element)
+            _get_text(module)
+            for module in modules_element
+            if isinstance(module, ET.Element)
         )
     else:
         modules = ()

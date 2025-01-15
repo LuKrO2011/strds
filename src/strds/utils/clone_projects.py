@@ -59,7 +59,9 @@ def clone_repository(
             shutil.rmtree(target)
             repo = git.Repo.clone_from(url=repo_url, to_path=target)
         else:
-            CONSOLE.print(f"Directory {target} exists. Skipping cloning/checkout of {repo_url}.")
+            CONSOLE.print(
+                f"Directory {target} exists. Skipping cloning/checkout of {repo_url}."
+            )
             return
     else:
         CONSOLE.print(f"Cloning {repo_url} to {target}")
@@ -144,7 +146,9 @@ def clone_projects(
             )
             commit_hash = git.Repo(target_path).head.commit.hexsha
             local_projects.append(
-                LocalProject(project=project, path=target_path, git_commit_hash=commit_hash)
+                LocalProject(
+                    project=project, path=target_path, git_commit_hash=commit_hash
+                )
             )
         except (ValueError, git.GitCommandError) as e:
             CONSOLE.print(e)
@@ -180,7 +184,9 @@ def clone_projects(
     is_flag=True,
     default=False,
 )
-def cli(csv_file: Path, output_path: Path, *, flapy_style: bool, overwrite: bool) -> None:
+def cli(
+    csv_file: Path, output_path: Path, *, flapy_style: bool, overwrite: bool
+) -> None:
     """Clone projects from a CSV file and validate the presence of module files.
 
     Args:
@@ -189,7 +195,7 @@ def cli(csv_file: Path, output_path: Path, *, flapy_style: bool, overwrite: bool
         flapy_style: Whether to use flapy style for checking out versions.
         overwrite: Whether to overwrite existing project directories.
     """
-    clone_projects(csv_file, output_path, flapy_style, overwrite)
+    clone_projects(csv_file, output_path, flapy_style=flapy_style, overwrite=overwrite)
 
 
 if __name__ == "__main__":

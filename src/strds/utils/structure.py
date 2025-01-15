@@ -22,7 +22,9 @@ class Dataset:
     def from_dict(cls, data: dict) -> "Dataset":  # type: ignore[type-arg]
         """Create a Dataset object from a dictionary."""
         return cls(
-            repositories=[Repository.from_dict(repo) for repo in data.get("repositories", [])]
+            repositories=[
+                Repository.from_dict(repo) for repo in data.get("repositories", [])
+            ]
         )
 
     def sort(self) -> "Dataset":
@@ -142,7 +144,9 @@ class Callable(Locatable):
             name=data["name"],
             line_number=data["line_number"],
             col_offset=data["col_offset"],
-            parameters=[Parameter.from_dict(param) for param in data.get("parameters", [])],
+            parameters=[
+                Parameter.from_dict(param) for param in data.get("parameters", [])
+            ],
             return_type=data.get("return_type"),
             body=data["body"],
             signature=data["signature"],

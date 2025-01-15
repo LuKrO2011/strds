@@ -106,7 +106,9 @@ def create_requirements_file(repo_dir: Path, repo: Repository) -> None:
     output_file.write_text(f"{repo.name}=={repo.pypi_tag}")
 
 
-def save_all_code(dataset: Dataset, output_dir: Path, *, without_type_annotations: bool) -> None:
+def save_all_code(
+    dataset: Dataset, output_dir: Path, *, without_type_annotations: bool
+) -> None:
     """Clones all repositories and removes type annotations if specified."""
     for repo in dataset.repositories:
         repo_dir = clone(repo, output_dir)
@@ -119,20 +121,28 @@ def save_all_code(dataset: Dataset, output_dir: Path, *, without_type_annotation
         create_requirements_file(repo_dir, repo)
 
 
-def run_methods(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
+def run_methods(
+    dataset: Path, output_dir: Path, *, without_type_annotations: bool
+) -> None:
     """Runs the provide methods command."""
     console.log(f"Loading dataset from {dataset}")
     loaded_dataset = load_from_json_file(dataset)
     output_dir.mkdir(parents=True, exist_ok=True)
-    extract_callables(loaded_dataset, output_dir, without_type_annotations=without_type_annotations)
+    extract_callables(
+        loaded_dataset, output_dir, without_type_annotations=without_type_annotations
+    )
 
 
-def run_repositories(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
+def run_repositories(
+    dataset: Path, output_dir: Path, *, without_type_annotations: bool
+) -> None:
     """Runs the provide repositories command."""
     console.log(f"Loading dataset from {dataset}")
     loaded_dataset = load_from_json_file(dataset)
     output_dir.mkdir(parents=True, exist_ok=True)
-    save_all_code(loaded_dataset, output_dir, without_type_annotations=without_type_annotations)
+    save_all_code(
+        loaded_dataset, output_dir, without_type_annotations=without_type_annotations
+    )
 
 
 def run_pynguin(dataset: Path, output_path: Path) -> None:
@@ -193,9 +203,13 @@ def methods(dataset: Path, output_dir: Path, *, without_type_annotations: bool) 
     default=False,
     help="Remove type annotations from the code.",
 )
-def repositories(dataset: Path, output_dir: Path, *, without_type_annotations: bool) -> None:
+def repositories(
+    dataset: Path, output_dir: Path, *, without_type_annotations: bool
+) -> None:
     """Clones the projects to provide all code."""
-    run_repositories(dataset, output_dir, without_type_annotations=without_type_annotations)
+    run_repositories(
+        dataset, output_dir, without_type_annotations=without_type_annotations
+    )
 
 
 @cli.command()
