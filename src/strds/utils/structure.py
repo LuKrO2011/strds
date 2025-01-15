@@ -21,8 +21,9 @@ class Dataset:
     @classmethod
     def from_dict(cls, data: dict) -> "Dataset":
         return cls(
-            repositories=[Repository.from_dict(repo) for repo in
-                          data.get("repositories", [])]
+            repositories=[
+                Repository.from_dict(repo) for repo in data.get("repositories", [])
+            ]
         )
 
     def sort(self):

@@ -11,12 +11,13 @@ from strds.utils.clone_projects import LocalProject, clone_projects
 from strds.utils.filter import Filter, FilterFactory
 from strds.utils.structure import (
     Class,
+    Dataset,
     Function,
     Method,
     Module,
     Parameter,
     Repository,
-    save_to_json_file, Dataset,
+    save_to_json_file,
 )
 
 console = Console()

@@ -2,8 +2,7 @@ import xml.etree.ElementTree as ET  # noqa: S405
 from dataclasses import dataclass
 from pathlib import Path
 
-from strds.utils.structure import Module, Repository, Dataset
-
+from strds.utils.structure import Dataset, Module, Repository
 
 # TODO: Use "--ignore_methods" and specify all methods but one. Modify
 #  `pynguin-experiments/prepare_experiment.py` to allow this. Then add all methods
