@@ -28,17 +28,17 @@ def remove_type_annotations(code: str) -> str:
         """A transformer to remove type annotations from a code snippet."""
 
         def leave_AnnAssign(
-                self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
+            self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
         ) -> cst.BaseSmallStatement:
             return updated_node.with_changes(annotation=None)
 
         def leave_Param(
-                self, original_node: cst.Param, updated_node: cst.Param
+            self, original_node: cst.Param, updated_node: cst.Param
         ) -> cst.Param:
             return updated_node.with_changes(annotation=None)
 
         def leave_FunctionDef(
-                self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+            self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
         ) -> cst.FunctionDef:
             return updated_node.with_changes(returns=None)
 
@@ -52,7 +52,7 @@ def remove_type_annotations(code: str) -> str:
 
 
 def extract_callables(
-        dataset: Dataset, output_dir: Path, without_type_annotations: bool
+    dataset: Dataset, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Extract and store the methods from the repositories."""
     for repo in dataset.repositories:
@@ -80,7 +80,7 @@ def function_path(repo: Repository, module: Module, function: Function) -> Path:
 
 
 def save_callable(
-        code: str, output_dir: Path, file_path: Path, without_type_annotations: bool
+    code: str, output_dir: Path, file_path: Path, without_type_annotations: bool
 ) -> None:
     """Saves a callable to a file."""
     if without_type_annotations:
@@ -97,7 +97,7 @@ def create_requirements_file(repo_dir: Path, repo: Repository) -> None:
 
 
 def save_all_code(
-        dataset: Dataset, output_dir: Path, without_type_annotations: bool
+    dataset: Dataset, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Clones all repositories and removes type annotations if specified."""
     for repo in dataset.repositories:
@@ -112,7 +112,7 @@ def save_all_code(
 
 
 def run_methods(
-        dataset: Path, output_dir: Path, without_type_annotations: bool
+    dataset: Path, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Runs the provide methods command."""
     console.log(f"Loading dataset from {dataset}")
@@ -122,7 +122,7 @@ def run_methods(
 
 
 def run_repositories(
-        dataset: Path, output_dir: Path, without_type_annotations: bool
+    dataset: Path, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Runs the provide repositories command."""
     console.log(f"Loading dataset from {dataset}")
@@ -190,7 +190,7 @@ def methods(dataset: Path, output_dir: Path, without_type_annotations: bool) -> 
     help="Remove type annotations from the code.",
 )
 def repositories(
-        dataset: Path, output_dir: Path, without_type_annotations: bool
+    dataset: Path, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Clones the projects to provide all code."""
     run_repositories(dataset, output_dir, without_type_annotations)

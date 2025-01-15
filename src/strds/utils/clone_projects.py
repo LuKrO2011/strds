@@ -1,4 +1,5 @@
 """Clone projects from a CSV file and validate the presence of module files."""
+
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,6 +17,7 @@ CONSOLE = Console()
 @dataclass
 class LocalProject:
     """Dataclass representing a local project."""
+
     project: FlaPyProject
     path: Path
     git_commit_hash: str
@@ -194,4 +196,4 @@ def cli(csv_file: Path, output_path: Path, flapy_style: bool, overwrite: bool) -
 
 
 if __name__ == "__main__":
-    cli() # pylint: disable=no-value-for-parameter
+    cli()  # pylint: disable=no-value-for-parameter

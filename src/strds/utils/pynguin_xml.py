@@ -1,4 +1,5 @@
 """Utility functions for Pynguin XML files."""
+
 import xml.etree.ElementTree as ET  # noqa: S405
 from dataclasses import dataclass
 from pathlib import Path

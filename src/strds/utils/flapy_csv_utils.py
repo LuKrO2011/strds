@@ -8,8 +8,9 @@ from typing import Any
 
 
 @dataclass
-class FlaPyProject: # pylint: disable=too-many-instance-attributes
+class FlaPyProject:  # pylint: disable=too-many-instance-attributes
     """Dataclass representing a FlaPy project."""
+
     project_name: str
     github_url: str
     matching_github_tag: str | None

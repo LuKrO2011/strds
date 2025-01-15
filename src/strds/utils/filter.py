@@ -47,14 +47,14 @@ class NoStringTypeFilter(Filter):  # pylint: disable=too-few-public-methods
                 func
                 for func in module.functions
                 if any(param.type == "str" for param in func.parameters)
-                   or func.return_type == "str"
+                or func.return_type == "str"
             ]
             for cls in module.classes:
                 cls.methods = [
                     method
                     for method in cls.methods
                     if any(param.type == "str" for param in method.parameters)
-                       or method.return_type == "str"
+                    or method.return_type == "str"
                 ]
         return repository
 

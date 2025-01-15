@@ -120,7 +120,7 @@ def parse_method(node: ast.FunctionDef, file: Path, class_name: str) -> Method:
 
 
 def craft_signature(
-        name: str, parameters: list[Parameter], return_type: str | None
+    name: str, parameters: list[Parameter], return_type: str | None
 ) -> str:
     """Crafts a function signature from its name and parameters."""
     signature = "("
@@ -139,7 +139,7 @@ def craft_signature(
 
 
 def extract_info(
-        file: Path, node: ast.FunctionDef
+    file: Path, node: ast.FunctionDef
 ) -> tuple[str, list[Parameter], str | None, str]:
     """Extracts body, parameters, return type, and signature from a function node."""
     parameters = [parse_parameter(arg) for arg in node.args.args]
@@ -184,19 +184,19 @@ def parse_repository(project: LocalProject) -> Repository:
         name=project.project.project_name,
         url=project.project.github_url,
         pypi_tag=project.project.matching_github_tag
-                 or project.project.pypi_latest_tag
-                 or "latest",
+        or project.project.pypi_latest_tag
+        or "latest",
         modules=modules,
         git_commit_hash=project.git_commit_hash,
     )
 
 
 def create_dataset(
-        csv_file: Path,
-        tmp_dir: Path,
-        keep_tmp_dir: bool = False,
-        output: Path = Path("output.json"),
-        filters: list[Filter] | None = None,
+    csv_file: Path,
+    tmp_dir: Path,
+    keep_tmp_dir: bool = False,
+    output: Path = Path("output.json"),
+    filters: list[Filter] | None = None,
 ) -> None:
     """Create a dataset from the given CSV file."""
     projects: list[LocalProject] = clone_projects(csv_file, tmp_dir)
@@ -253,7 +253,7 @@ def create_dataset(
     type=str,
 )
 def cli(
-        csv_file: Path, tmp_dir: Path, keep_tmp_dir: bool, output: Path, filters: str
+    csv_file: Path, tmp_dir: Path, keep_tmp_dir: bool, output: Path, filters: str
 ) -> None:
     """Parse a Python repository and output its information as dataset."""
     parsed_filters = create_filters(filters)
