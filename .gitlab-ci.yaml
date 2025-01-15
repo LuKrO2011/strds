@@ -1,0 +1,77 @@
+image: python:${PYTHON_VERSION}
+
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID         # Execute jobs in merge request context
+    - if: $CI_COMMIT_BRANCH == 'main'  # Execute jobs when a new commit is pushed to the main branch
+
+cache:
+  key: virtualenv
+  paths:
+    - .venv/
+    - .cache/pip
+    - .cache/pypoetry
+
+stages:
+  - build
+  - lint
+  - test
+
+before_script:
+  - python --version
+  - pip install poetry
+  - poetry config virtualenvs.in-project true
+  - poetry install
+
+.unit-tests: &unit-tests
+  stage: test
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  script:
+    - poetry run pytest -q --cov=strds --cov=tests --cov-branch --cov-report html:cov_html --cov-report xml:coverage.xml --cov-report=term-missing --junitxml=report.xml tests/
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit:
+        report.xml
+    paths:
+      - cov_html
+
+unit-tests:python-3.13:
+  <<: *unit-tests
+  variables:
+    PYTHON_VERSION: '3.13-bookworm'
+
+.nightly-tests:
+  only:
+    - schedules
+  stage: test
+  before_script:
+    - python --version
+    - pip install poetry
+    - poetry config virtualenvs.in-project true
+    - poetry install
+    - poetry add --group dev pytest-random-order
+  script:
+    - for ((i=1; i<=10; i++)); do echo "Test run ${i}\n"; poetry run pytest -q --cov=strds --cov=tests --cov-branch --random-order --random-order-bucket=global ; done
+  needs: ["unit-tests:python-3.13"]
+
+nightly-tests:python-3.13:
+  extends: .nightly-tests
+  variables:
+    PYTHON_VERSION: '3.13-bookworm'
+
+pre-commit:
+  stage: lint
+  image: python:3.13-bookworm
+  script:
+    - poetry run pre-commit run --all-files
+  needs: []
+
+mypy:
+  stage: lint
+  image: python:3.13-bookworm
+  script:
+    - poetry run mypy
+  needs: ["pre-commit"]
