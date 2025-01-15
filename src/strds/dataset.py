@@ -203,9 +203,8 @@ def create_dataset(
     for project in projects:
         console.log(f"Parsing: {project.path}")
         repository = parse_repository(project)
-        # if filters:
-        #     repository = repository.apply(filters)
-        repository = repository.apply(filters)
+        if filters:
+            repository = repository.apply(filters)
         if repository.modules:
             repositories.append(repository)
         else:

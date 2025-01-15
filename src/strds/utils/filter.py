@@ -37,6 +37,7 @@ class EmptyFilter(Filter):
         return repository
 
 
+# TODO: Also consider dicts, lists etc. using strings
 class NoStringTypeFilter(Filter):
     """Removes all functions and methods without a 'str' parameter or return type."""
 
@@ -45,16 +46,19 @@ class NoStringTypeFilter(Filter):
             module.functions = [
                 func
                 for func in module.functions
-                if "str" in func.parameters or func.return_type == "str"
+                if any(
+                    param.type == "str" for param in func.parameters
+                ) or func.return_type == "str"
             ]
             for cls in module.classes:
                 cls.methods = [
                     method
                     for method in cls.methods
-                    if "str" in method.parameters or method.return_type == "str"
+                    if any(
+                        param.type == "str" for param in method.parameters
+                    ) or method.return_type == "str"
                 ]
         return repository
-
 
 def get_all_filters() -> dict[str, type[Filter]]:
     """Discover all Filter subclasses in the current module dynamically.
