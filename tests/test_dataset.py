@@ -14,11 +14,9 @@ def test_integrate(tmp_path):
     tmp_dir = tmp_path / "tmp"
     output = tmp_path / "output.json"
     filters = create_filters("NoStringTypeFilter,EmptyFilter")
-    create_dataset(csv_file_path, tmp_dir=tmp_dir, output=output, filters=filters)
 
-    assert output.exists()
+    create_dataset(csv_file_path, tmp_dir=tmp_dir, output=output, filters=filters)
 
     actual = load_from_json_file(output)
     expected = load_from_json_file(expected_json_path)
-
     assert actual.sort() == expected.sort()

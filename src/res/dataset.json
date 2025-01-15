@@ -7,6 +7,111 @@
       "git_commit_hash": "2a797303b2b0e988f8063fc1d418f65c821efa97",
       "modules": [
         {
+          "name": "test_check_consitency",
+          "file_path": "tests/unit/test_check_consitency.py",
+          "functions": [
+            {
+              "name": "create_notebook_and_convert_it",
+              "line_number": 19,
+              "col_offset": 5,
+              "parameters": [
+                {
+                  "name": "cells",
+                  "line_number": 19,
+                  "col_offset": 36,
+                  "type": null
+                },
+                {
+                  "name": "script_name",
+                  "line_number": 19,
+                  "col_offset": 43,
+                  "type": null
+                },
+                {
+                  "name": "conf",
+                  "line_number": 19,
+                  "col_offset": 56,
+                  "type": null
+                },
+                {
+                  "name": "work_dir",
+                  "line_number": 19,
+                  "col_offset": 62,
+                  "type": null
+                }
+              ],
+              "return_type": "str",
+              "body": "def create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str:\n    \"\"\"\n        Create a notebook from cells then convert it into a python script\n    \"\"\"\n    notebook_path = gen_notebook(tmp_dir=work_dir, file_name='test.ipynb', docstring=None, cells=cells)\n    script_base_path = join(work_dir, script_name)\n    export_to_script(notebook_path, script_base_path, conf)\n    return notebook_path, script_base_path",
+              "signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
+              "full_signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
+          "name": "test_parse",
+          "file_path": "tests/unit/diff/test_parse.py",
+          "functions": [
+            {
+              "name": "script_base",
+              "line_number": 47,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def script_base() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "script_base() -> str",
+              "full_signature": "script_base() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_base_spaces_and_blank",
+              "line_number": 63,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_base_spaces_and_blank() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\n\n\n\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_base_spaces_and_blank() -> str",
+              "full_signature": "get_script_base_spaces_and_blank() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_diff_comment",
+              "line_number": 83,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_diff_comment() -> str:\n    python_content = \"\"\"\n# This is a different comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    # This a new comment\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_diff_comment() -> str",
+              "full_signature": "get_script_diff_comment() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_diff_docstring",
+              "line_number": 100,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_diff_docstring() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A different docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_diff_docstring() -> str",
+              "full_signature": "get_script_diff_docstring() -> str",
+              "annotations": ""
+            },
+            {
+              "name": "get_script_diff",
+              "line_number": 116,
+              "col_offset": 5,
+              "parameters": [],
+              "return_type": "str",
+              "body": "def get_script_diff() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return dir_path\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
+              "signature": "get_script_diff() -> str",
+              "full_signature": "get_script_diff() -> str",
+              "annotations": ""
+            }
+          ],
+          "classes": []
+        },
+        {
           "name": "ipynb_to_python",
           "file_path": "mlvtools/ipynb_to_python.py",
           "functions": [
@@ -378,111 +483,6 @@
               "body": "def get_conf_file_default_path(work_dir: str) -> str:\n    return join(work_dir, DEFAULT_CONF_FILENAME)",
               "signature": "get_conf_file_default_path(work_dir: str) -> str",
               "full_signature": "get_conf_file_default_path(work_dir: str) -> str",
-              "annotations": ""
-            }
-          ],
-          "classes": []
-        },
-        {
-          "name": "test_check_consitency",
-          "file_path": "tests/unit/test_check_consitency.py",
-          "functions": [
-            {
-              "name": "create_notebook_and_convert_it",
-              "line_number": 19,
-              "col_offset": 5,
-              "parameters": [
-                {
-                  "name": "cells",
-                  "line_number": 19,
-                  "col_offset": 36,
-                  "type": null
-                },
-                {
-                  "name": "script_name",
-                  "line_number": 19,
-                  "col_offset": 43,
-                  "type": null
-                },
-                {
-                  "name": "conf",
-                  "line_number": 19,
-                  "col_offset": 56,
-                  "type": null
-                },
-                {
-                  "name": "work_dir",
-                  "line_number": 19,
-                  "col_offset": 62,
-                  "type": null
-                }
-              ],
-              "return_type": "str",
-              "body": "def create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str:\n    \"\"\"\n        Create a notebook from cells then convert it into a python script\n    \"\"\"\n    notebook_path = gen_notebook(tmp_dir=work_dir, file_name='test.ipynb', docstring=None, cells=cells)\n    script_base_path = join(work_dir, script_name)\n    export_to_script(notebook_path, script_base_path, conf)\n    return notebook_path, script_base_path",
-              "signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
-              "full_signature": "create_notebook_and_convert_it(cells, script_name, conf, work_dir) -> str",
-              "annotations": ""
-            }
-          ],
-          "classes": []
-        },
-        {
-          "name": "test_parse",
-          "file_path": "tests/unit/diff/test_parse.py",
-          "functions": [
-            {
-              "name": "script_base",
-              "line_number": 47,
-              "col_offset": 5,
-              "parameters": [],
-              "return_type": "str",
-              "body": "def script_base() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-              "signature": "script_base() -> str",
-              "full_signature": "script_base() -> str",
-              "annotations": ""
-            },
-            {
-              "name": "get_script_base_spaces_and_blank",
-              "line_number": 63,
-              "col_offset": 5,
-              "parameters": [],
-              "return_type": "str",
-              "body": "def get_script_base_spaces_and_blank() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\n\n\n\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-              "signature": "get_script_base_spaces_and_blank() -> str",
-              "full_signature": "get_script_base_spaces_and_blank() -> str",
-              "annotations": ""
-            },
-            {
-              "name": "get_script_diff_comment",
-              "line_number": 83,
-              "col_offset": 5,
-              "parameters": [],
-              "return_type": "str",
-              "body": "def get_script_diff_comment() -> str:\n    python_content = \"\"\"\n# This is a different comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    # This a new comment\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-              "signature": "get_script_diff_comment() -> str",
-              "full_signature": "get_script_diff_comment() -> str",
-              "annotations": ""
-            },
-            {
-              "name": "get_script_diff_docstring",
-              "line_number": 100,
-              "col_offset": 5,
-              "parameters": [],
-              "return_type": "str",
-              "body": "def get_script_diff_docstring() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A different docstring '''\n    return os.listdir(dir_path)\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-              "signature": "get_script_diff_docstring() -> str",
-              "full_signature": "get_script_diff_docstring() -> str",
-              "annotations": ""
-            },
-            {
-              "name": "get_script_diff",
-              "line_number": 116,
-              "col_offset": 5,
-              "parameters": [],
-              "return_type": "str",
-              "body": "def get_script_diff() -> str:\n    python_content = \"\"\"\n# This is a comment\nimport os\nfrom Typing import List\n\ndef list_dir(dir_path:str) -> List[str]:\n    ''' A docstring '''\n    return dir_path\n\nprint('Hello !!')\nprint(list_dir('/tmp'))\n\"\"\"\n    return python_content",
-              "signature": "get_script_diff() -> str",
-              "full_signature": "get_script_diff() -> str",
               "annotations": ""
             }
           ],

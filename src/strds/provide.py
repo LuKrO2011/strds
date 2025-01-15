@@ -18,17 +18,17 @@ def remove_type_annotations(code: str) -> str:
 
     class RemoveAnnotationsTransformer(cst.CSTTransformer):
         def leave_AnnAssign(
-            self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
+                self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
         ) -> cst.BaseSmallStatement:
             return updated_node.with_changes(annotation=None)
 
         def leave_Param(
-            self, original_node: cst.Param, updated_node: cst.Param
+                self, original_node: cst.Param, updated_node: cst.Param
         ) -> cst.Param:
             return updated_node.with_changes(annotation=None)
 
         def leave_FunctionDef(
-            self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+                self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
         ) -> cst.FunctionDef:
             return updated_node.with_changes(returns=None)
 
@@ -42,7 +42,7 @@ def remove_type_annotations(code: str) -> str:
 
 
 def extract_callables(
-    dataset: Dataset, output_dir: Path, without_type_annotations: bool
+        dataset: Dataset, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Extract and store the methods from the repositories."""
     for repo in dataset.repositories:
@@ -60,7 +60,7 @@ def extract_callables(
 
 
 def method_path(
-    repo: Repository, module: dataclass, cls: dataclass, method: dataclass
+        repo: Repository, module: dataclass, cls: dataclass, method: dataclass
 ) -> Path:
     return Path(f"{repo.name}/{module.name}/{cls.name}/{method.name}.py")
 
@@ -70,7 +70,7 @@ def function_path(repo: Repository, module: dataclass, function: dataclass) -> P
 
 
 def save_callable(
-    code: str, output_dir: Path, file_path: Path, without_type_annotations: bool
+        code: str, output_dir: Path, file_path: Path, without_type_annotations: bool
 ) -> None:
     """Saves a callable to a file."""
     if without_type_annotations:
@@ -87,7 +87,7 @@ def create_requirements_file(repo_dir: Path, repo: Repository) -> None:
 
 
 def save_all_code(
-    dataset: Dataset, output_dir: Path, without_type_annotations: bool
+        dataset: Dataset, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Clones all repositories and removes type annotations if specified."""
     for repo in dataset.repositories:
@@ -99,6 +99,31 @@ def save_all_code(
                 code = remove_type_annotations(code)
                 file.write_text(code)
         create_requirements_file(repo_dir, repo)
+
+
+def run_methods(dataset: Path, output_dir: Path,
+                without_type_annotations: bool) -> None:
+    console.log(f"Loading dataset from {dataset}")
+    loaded_dataset = load_from_json_file(dataset)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    extract_callables(loaded_dataset, output_dir, without_type_annotations)
+
+
+def run_repositories(dataset: Path, output_dir: Path,
+                     without_type_annotations: bool) -> None:
+    console.log(f"Loading dataset from {dataset}")
+    loaded_dataset = load_from_json_file(dataset)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    save_all_code(loaded_dataset, output_dir, without_type_annotations)
+
+
+def run_pynguin(dataset: Path, output_path: Path) -> None:
+    console.log(f"Loading dataset from {dataset}")
+    loaded_dataset = load_from_json_file(dataset)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if output_path.is_file():
+        output_path.unlink()
+    create_pynguin_xmls(loaded_dataset, output_path)
 
 
 @click.group()
@@ -128,10 +153,7 @@ def cli():
 )
 def methods(dataset: Path, output_dir: Path, without_type_annotations: bool) -> None:
     """Provides the methods as they are stored in the JSON."""
-    console.log(f"Loading dataset from {dataset}")
-    loaded_dataset = load_from_json_file(dataset)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    extract_callables(loaded_dataset, output_dir, without_type_annotations)
+    run_methods(dataset, output_dir, without_type_annotations)
 
 
 @cli.command()
@@ -154,13 +176,10 @@ def methods(dataset: Path, output_dir: Path, without_type_annotations: bool) -> 
     help="Remove type annotations from the code.",
 )
 def repositories(
-    dataset: Path, output_dir: Path, without_type_annotations: bool
+        dataset: Path, output_dir: Path, without_type_annotations: bool
 ) -> None:
     """Clones the projects to provide all code."""
-    console.log(f"Loading dataset from {dataset}")
-    loaded_dataset = load_from_json_file(dataset)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    save_all_code(loaded_dataset, output_dir, without_type_annotations)
+    run_repositories(dataset, output_dir, without_type_annotations)
 
 
 @cli.command()
@@ -178,12 +197,7 @@ def repositories(
 )
 def pynguin(dataset: Path, output_path: Path) -> None:
     """Creates a directory with pynguin .xml files."""
-    console.log(f"Loading dataset from {dataset}")
-    loaded_dataset = load_from_json_file(dataset)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    if output_path.is_file():
-        output_path.unlink()
-    create_pynguin_xmls(loaded_dataset, output_path)
+    run_pynguin(dataset, output_path)
 
 
 if __name__ == "__main__":

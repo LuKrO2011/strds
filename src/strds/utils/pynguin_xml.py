@@ -4,6 +4,7 @@ from pathlib import Path
 
 from strds.utils.structure import Dataset, Module, Repository
 
+
 # TODO: Use "--ignore_methods" and specify all methods but one. Modify
 #  `pynguin-experiments/prepare_experiment.py` to allow this. Then add all methods
 #  but the selected one to the Pynguin XML file.
@@ -68,3 +69,31 @@ def write_xml(projects: dict[str, Project], out_file: Path) -> None:
 
     tree = ET.ElementTree(root_element)
     tree.write(out_file, encoding="unicode", xml_declaration=True)
+
+
+def read_xml(file: Path) -> dict[str, Project]:
+    """Reads the projects from the given XML file.
+
+    Args:
+        file: The XML file to read
+
+    Returns:
+        The projects
+    """
+    tree = ET.parse(file)
+    root = tree.getroot()
+    projects = {}
+    for project in root:
+        project_name = project.find("name").text
+        version = project.find("version").text
+        repository_url = project.find("repository").text
+        sources = project.find("sources").text
+        modules = tuple(module.text for module in project.find("modules"))
+        projects[project_name] = Project(
+            project_name=project_name,
+            version=version,
+            repository_url=repository_url,
+            sources=sources,
+            modules=modules,
+        )
+    return projects
