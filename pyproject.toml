@@ -24,6 +24,10 @@ click = "^8.1.8"
 libcst = "^1.6.0"
 pytest = "^8.3.4"
 defusedxml = "^0.7.1"
+pandas = "^2.2.3"
+requests = "^2.32.3"
+tqdm = "^4.67.1"
+beautifulsoup4 = "^4.13.1"
 
 
 [tool.poetry.group.dev.dependencies]
