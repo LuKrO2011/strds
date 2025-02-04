@@ -62,9 +62,34 @@ To set up the project and its dependencies, follow these steps:
 
 ## Command Line Interface (CLI)
 
-### 1. Dataset Creation
 
-Creates a json file with the created dataset.
+### 1. Dataset Mining
+
+Mines repositories from [PyPi](https://pypi.org/) and [GitHub](https://github.com/) to a CSV file.
+
+```bash
+poetry run mine --sample-size <size> --random-seed <seed> --project-list-file <file> [--redirect-github-urls] [--remove-duplicates] [--remove-no-github-url-found] [--csv-output <file>]
+```
+
+Options:
+
+- `--sample-size`: Number of projects to sample. If not set, all projects are mined.
+- `--random-seed`: Random seed for reproducibility.
+- `--project-list-file`: Path to the project list file. If not set, all projects are considered.
+- `--redirect-github-urls`: Follow GitHub redirects (default: `True`).
+- `--remove-duplicates`: Remove duplicate projects (default: `True`).
+- `--remove-no-github-url-found`: Remove projects without GitHub URLs (default: `True`).
+- `--csv-output`: Path to store the CSV output (default: `output/repos.csv`).
+
+Example:
+
+```bash
+poetry run mine --sample-size 10 --random-seed 42 --csv-output output/repos.csv
+```
+
+### 2. Dataset Creation
+
+Creates a json file for the dataset.
 
 ```bash
 poetry run dataset --csv-file <csv> --tmp-dir <dir> [--keep-tmp-dir] [--output <json>] [--filters <filters>]
@@ -86,7 +111,7 @@ poetry run dataset --csv-file src/res/repos.csv --tmp-dir tmp --output output/da
 
 ---
 
-### 2. Provide Dataset
+### 3. Provide Dataset
 
 Form the dataset json file the tool can provide relevant methods only or the entire repository code along with the
 dependencies in a `requirements.txt` file.
