@@ -126,6 +126,14 @@ The following filters can be applied during dataset creation:
   - Only considers exact `str` type annotations, not container types like `list[str]` or `dict[str, str]`.
   - Functions/methods without any string parameters or return types are removed.
 
+- **PublicModulesFilter**: Removes all non-public modules from the dataset.
+  - In Python, modules that start with an underscore are considered non-public (private, package private, internal, etc.).
+  - Only modules with names that don't start with an underscore are kept.
+
+- **TestModulesFilter**: Removes all test modules from the dataset.
+  - Identifies test modules by checking module names starting with 'test_'.
+  - Also removes modules located in directories that start with 'test' or contain '/test' in their path.
+
 You can specify multiple filters by separating them with commas:
 
 ```bash

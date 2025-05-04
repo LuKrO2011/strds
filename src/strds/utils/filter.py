@@ -62,6 +62,41 @@ class NoStringTypeFilter(Filter):  # pylint: disable=too-few-public-methods
         return repository
 
 
+class PublicModulesFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all non-public modules.
+
+    In Python, modules that start with an underscore are considered non-public
+    (private, package private, internal, etc.).
+    """
+
+    def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
+        repository.modules = [
+            module for module in repository.modules if not module.name.startswith("_")
+        ]
+        return repository
+
+
+class TestModulesFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all test modules.
+
+    Identifies tests by checking module and package names.
+    Test modules typically have names starting with 'test_' or are located in
+    packages/directories that start with 'test'.
+    """
+
+    def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
+        repository.modules = [
+            module
+            for module in repository.modules
+            if not module.name.startswith("test_")
+            and not str(module.file_path).startswith("test")
+            and "/test" not in str(module.file_path)
+        ]
+        return repository
+
+
 def get_all_filters() -> dict[str, type[Filter]]:
     """Discover all Filter subclasses in the current module dynamically.
 
