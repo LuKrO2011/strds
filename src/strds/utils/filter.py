@@ -62,7 +62,7 @@ class NoStringTypeFilter(Filter):  # pylint: disable=too-few-public-methods
         return repository
 
 
-class PublicModulesFilter(Filter):  # pylint: disable=too-few-public-methods
+class PrivateModuleFilter(Filter):  # pylint: disable=too-few-public-methods
     """Removes all non-public modules.
 
     In Python, modules that start with an underscore are considered non-public

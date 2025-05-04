@@ -607,6 +607,9 @@ def sample_pypi_projects(
             )
         )
 
+    if project_details.empty:
+        return ""
+
     # Apply filters
     project_details = _filter_projects(
         project_details=project_details,
@@ -685,8 +688,13 @@ def cli(
         remove_no_github_url_found=remove_no_github_url_found,
         languages=language_list,
     )
-    console.log("[bold green]CSV output generated:[/bold green] " + csv_output)
+
+    if not csv:
+        console.log("[bold red]No projects found.[/bold red]")
+        return
+
     Path(csv_output).write_text(csv, encoding="utf-8")
+    console.log("[bold green]CSV output generated:[/bold green] " + csv_output)
 
 
 if __name__ == "__main__":

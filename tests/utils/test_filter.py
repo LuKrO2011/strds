@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
-from strds.utils.filter import PublicModulesFilter, TestModulesFilter
+from strds.utils.filter import PrivateModuleFilter, TestModulesFilter
 from strds.utils.structure import Module, Repository
 
 
 def test_public_modules_filter():
-    """Test that PublicModulesFilter removes non-public modules."""
+    """Test that PrivateModulesFilter removes non-public modules."""
     # Create a repository with both public and non-public modules
     repository = Repository(
         name="test_repo",
@@ -21,8 +21,8 @@ def test_public_modules_filter():
         ],
     )
 
-    # Apply the PublicModulesFilter
-    filter_instance = PublicModulesFilter()
+    # Apply the PrivateModulesFilter
+    filter_instance = PrivateModuleFilter()
     filtered_repository = filter_instance.apply(repository)
 
     # Verify that only the public module remains
