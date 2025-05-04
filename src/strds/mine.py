@@ -1,4 +1,5 @@
 """Mine PyPI + GitHub projects."""
+
 import logging
 import operator
 import random
@@ -8,7 +9,6 @@ import shutil
 import subprocess  # noqa: S404
 import sys
 import time
-import typing
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -16,8 +16,9 @@ from typing import Any
 
 import click
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
+import requests  # type: ignore[import-untyped]
+from bs4 import BeautifulSoup, Tag
+from bs4.element import NavigableString, PageElement
 from rich.console import Console
 from rich.logging import RichHandler
 from tqdm import tqdm
@@ -31,8 +32,9 @@ HTTP_SUCCESS_STATUS_CODE = 200
 
 # Setup the rich console and logger
 console = Console()
-logging.basicConfig(level=logging.INFO, format="%(message)s",
-                    handlers=[RichHandler(console=console)])
+logging.basicConfig(
+    level=logging.INFO, format="%(message)s", handlers=[RichHandler(console=console)]
+)
 
 session = requests.Session()
 session.mount("", requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
@@ -52,12 +54,12 @@ def get_git_path() -> str:
 
 
 def try_default(
-        function: Callable,
-        exception=Exception,
-        error_return_val=None,
-        log_error_info=None,
-        finally_: Callable[[], Any] | None = None,
-):
+    function: Callable[[], Any],
+    exception: type[Exception] = Exception,
+    error_return_val: Any = None,
+    log_error_info: str | None = None,
+    finally_: Callable[[], Any] | None = None,
+) -> Any:
     """Helper function. Try-except is not allowed in lambdas.
 
     function: the function that shall be called. It must not have input parameters ->
@@ -66,21 +68,26 @@ def try_default(
     error_return_val: either a function that shall be called
     """
     try:
-        if isinstance(error_return_val,
-                      str) and error_return_val == "ERROR_MESSAGE_TUPLE":
+        if (
+            isinstance(error_return_val, str)
+            and error_return_val == "ERROR_MESSAGE_TUPLE"
+        ):
             return "ok", function()
         return function()
     except exception as caught_exception:  # pylint: disable=broad-except
         if log_error_info is not None:
             console.log(
                 f"[red]{type(caught_exception).__name__}: {caught_exception}[/red] | "
-                f"{log_error_info}")
+                f"{log_error_info}"
+            )
         if callable(error_return_val):
             return error_return_val(caught_exception)
         if isinstance(error_return_val, str) and error_return_val == "ERROR_MESSAGE":
             return f"{type(caught_exception).__name__}: {caught_exception}"
-        if isinstance(error_return_val,
-                      str) and error_return_val == "ERROR_MESSAGE_TUPLE":
+        if (
+            isinstance(error_return_val, str)
+            and error_return_val == "ERROR_MESSAGE_TUPLE"
+        ):
             return "error", f"{type(caught_exception).__name__}: {caught_exception}"
         return error_return_val
     finally:
@@ -98,7 +105,73 @@ def fetch_all_pypi_projects() -> list[str]:
     response = requests.get("https://pypi.org/simple/", timeout=TIMEOUT).text
 
     console.log("[bold green]Parsing PyPI projects...[/bold green]")
-    return [a.text for a in BeautifulSoup(response, "html.parser").find_all("a")]
+    soup = BeautifulSoup(response, "html.parser")
+    # Use Tag type to ensure find_all is available
+    return [a.text for a in soup.find_all("a")]
+
+
+def _extract_package_from_row(row: PageElement | Tag | NavigableString) -> str | None:
+    """Extract package name from a table row.
+
+    Args:
+        row: The table row to extract from
+
+    Returns:
+        The package name or None if not found
+    """
+    if not isinstance(row, Tag):
+        return None
+
+    cells = row.find_all("td")
+    if not cells or len(cells) < 2:
+        return None
+
+    # Assume the second cell contains the package name
+    return str(cells[1].text.strip())
+
+
+def fetch_top_pypi_packages(top_n: int = 100) -> list[str]:
+    """Fetch top PyPI packages from hugovk.github.io/top-pypi-packages/.
+
+    Args:
+        top_n: Number of top packages to fetch. Default is 100.
+
+    Returns:
+        A list of top PyPI package names
+    """
+    console.log("[bold green]Fetching top PyPI packages...[/bold green]")
+    url = "https://hugovk.github.io/top-pypi-packages/"
+    response = requests.get(url, timeout=TIMEOUT).text
+    soup = BeautifulSoup(response, "html.parser")
+
+    console.log("[bold green]Parsing top PyPI packages...[/bold green]")
+    packages: list[str] = []
+
+    # Find tables in the page
+    tables = soup.find_all("table")
+    if not tables:
+        console.log("[bold green]Found 0 top PyPI packages[/bold green]")
+        return packages
+
+    # Assume the first table contains the data we want
+    table = tables[0]
+    if not isinstance(table, Tag):
+        console.log("[bold green]Found 0 top PyPI packages[/bold green]")
+        return packages
+
+    # Get all rows and skip header
+    rows = table.find_all("tr")[1:]
+
+    # Process rows until we have enough packages
+    for row in rows:
+        package_name = _extract_package_from_row(row)
+        if package_name:
+            packages.append(package_name)
+            if len(packages) >= top_n:
+                break
+
+    console.log(f"[bold green]Found {len(packages)} top PyPI packages[/bold green]")
+    return packages
 
 
 def _get_pypi_metadata(project_name: str) -> tuple[str, int, Any]:
@@ -126,7 +199,7 @@ def _get_pypi_metadata(project_name: str) -> tuple[str, int, Any]:
     return "successful", http_response_code, data
 
 
-def _get_latest_pypi_tag(pypi_json: dict) -> str:
+def _get_latest_pypi_tag(pypi_json: dict[str, Any]) -> str:
     """Get the latest PyPI tag from the JSON data.
 
     Args:
@@ -140,16 +213,13 @@ def _get_latest_pypi_tag(pypi_json: dict) -> str:
     except Exception as exc:
         raise ValueError("data does not contain releases") from exc
 
-    def get_upload_time(release: dict) -> str | None:
+    def get_upload_time(release: list[dict[str, Any]]) -> str | None:
         try:
-            return release[0]["upload_time"]
+            return str(release[0]["upload_time"])
         except Exception:  # noqa: BLE001
             return None
 
-    releases = [
-        (r_k, get_upload_time(r_v))
-        for r_k, r_v in releases.items()
-    ]
+    releases = [(r_k, get_upload_time(r_v)) for r_k, r_v in releases.items()]
 
     releases = [
         (release_tag, release_date)
@@ -158,7 +228,7 @@ def _get_latest_pypi_tag(pypi_json: dict) -> str:
     ]
     if len(releases) == 0:
         raise ValueError("release list is empty")
-    return max(releases, key=operator.itemgetter(1))[0]
+    return str(max(releases, key=operator.itemgetter(1))[0])
 
 
 def _is_valid_github_url(github_url: str) -> bool:
@@ -171,6 +241,55 @@ def _is_valid_github_url(github_url: str) -> bool:
         True if the URL is valid, False otherwise
     """
     return re.match(GITHUB_URL_REGEX, github_url) is not None
+
+
+def _extract_github_owner_repo(github_url: str) -> tuple[str, str]:
+    """Extract the owner and repository name from a GitHub URL.
+
+    Args:
+        github_url: The GitHub URL
+
+    Returns:
+        A tuple containing the owner and repository name
+    """
+    # Remove trailing slash if present
+    github_url = github_url.removesuffix("/")
+
+    # Extract owner and repo from URL
+    parts = github_url.split("/")
+    owner = parts[-2]
+    repo = parts[-1]
+
+    return owner, repo
+
+
+def _fetch_github_languages(github_url: str) -> dict[str, int]:
+    """Fetch the languages used in a GitHub repository.
+
+    Args:
+        github_url: The GitHub URL
+
+    Returns:
+        A dictionary mapping language names to bytes of code
+    """
+    if not github_url or not _is_valid_github_url(github_url):
+        return {}
+
+    try:
+        owner, repo = _extract_github_owner_repo(github_url)
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/languages"
+        response = session.get(api_url, timeout=TIMEOUT)
+
+        if response.status_code == 200:
+            # Cast the response to the expected type
+            return dict(response.json())
+        console.log(
+            f"[yellow]Failed to fetch languages for {github_url}: {response.status_code}[/yellow]"
+        )
+        return {}
+    except Exception as e:  # noqa: BLE001
+        console.log(f"[red]Error fetching languages for {github_url}: {e}[/red]")
+        return {}
 
 
 def _get_git_tags(url: str) -> list[str]:
@@ -193,7 +312,7 @@ def _get_git_tags(url: str) -> list[str]:
             [git_path, "ls-remote", "--tags", search_url],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         data: str = result.stdout
@@ -211,7 +330,7 @@ def _get_git_tags(url: str) -> list[str]:
     return sorted(tags)
 
 
-def _match_pypi_git_tag(pypi_version, git_tags) -> str:
+def _match_pypi_git_tag(pypi_version: str, git_tags: list[str]) -> str:
     """Match the PyPI version with the git tags.
 
     Args:
@@ -228,7 +347,7 @@ def _match_pypi_git_tag(pypi_version, git_tags) -> str:
     return ""
 
 
-def resolve_url(url: str, max_retries=10, sleep_time=11) -> tuple[str, int]:
+def resolve_url(url: str, max_retries: int = 10, sleep_time: int = 11) -> tuple[str, int]:
     """Resolve a URL and follow redirects.
 
     Args:
@@ -254,50 +373,165 @@ def resolve_url(url: str, max_retries=10, sleep_time=11) -> tuple[str, int]:
         return "", HTTP_ERROR_STATUS_CODE
 
 
+def _filter_projects(
+    project_details: pd.DataFrame,
+    *,
+    remove_duplicates: bool,
+    remove_no_github_url_found: bool,
+    languages: list[str] | None,
+) -> pd.DataFrame:
+    """Filter projects based on various criteria.
+
+    Args:
+        project_details: DataFrame containing project details
+        remove_duplicates: Whether to remove duplicates
+        remove_no_github_url_found: Whether to remove projects with no GitHub URL found
+        languages: A list of languages to filter by
+
+    Returns:
+        Filtered DataFrame
+    """
+    # 1. Drop duplicates (some PyPI projects point to the same GitHub URL)
+    if remove_duplicates:
+        num_duplicates = project_details.duplicated("Github_URL").sum()
+        console.log(
+            f"[yellow]Dropped {num_duplicates} duplicated entries (same GitHub URL)["
+            f"/yellow]"
+        )
+        project_details = project_details[
+            ~project_details.duplicated("Github_URL")
+            | project_details["Github_URL"].isna()
+        ]
+
+    # 2. Remove cases where no Github URL was found
+    if remove_no_github_url_found:
+        num_no_github_url_found = project_details["Github_URL"].isna().sum()
+        console.log(
+            f"[yellow]Dropped {num_no_github_url_found} projects where no GitHub URL "
+            f"was found[/yellow]"
+        )
+        project_details = project_details[~project_details["Github_URL"].isna()]
+
+    # 3. Filter by languages if specified
+    if languages:
+        # Create a function to check if any of the specified languages
+        # are in the project's languages
+        def has_specified_language(project_languages: dict[str, Any] | None) -> bool:
+            if not project_languages:
+                return False
+            project_lang_keys = [lang.lower() for lang in project_languages]
+            return any(lang.lower() in project_lang_keys for lang in languages)
+
+        # Apply the filter
+        before_count = len(project_details)
+        project_details = project_details[
+            project_details["github_languages"].apply(has_specified_language)
+        ]
+        after_count = len(project_details)
+
+        console.log(
+            f"[yellow]Filtered {before_count - after_count} projects that don't use any of the "
+            f"specified languages: {languages}[/yellow]"
+        )
+
+    return project_details
+
+
+def _fetch_projects(
+    sample_size: int | None,
+    project_list_file: str | Path | None,
+    *,
+    use_top_packages: bool,
+    random_seed: int | None,
+) -> list[str]:
+    """Fetch projects from PyPI or a file.
+
+    Args:
+        sample_size: The number of projects to sample
+        project_list_file: A file containing a list of projects
+        use_top_packages: Whether to use top PyPI packages
+        random_seed: The random seed
+
+    Returns:
+        A list of project names
+    """
+    if random_seed is not None:
+        random.seed(random_seed)
+
+    if use_top_packages:
+        if sample_size is None:
+            sample_size = 100  # Default to 100 top packages if not specified
+        return fetch_top_pypi_packages(top_n=sample_size)
+    if project_list_file is None:
+        projects = fetch_all_pypi_projects()
+        # Only do random sampling if not using top packages
+        if sample_size is not None:
+            projects = random.sample(projects, sample_size)
+        return projects
+    # Ensure project_list_file is a Path object
+    file_path = Path(project_list_file) if project_list_file is not None else None
+    if file_path is not None:
+        content = file_path.read_text(encoding="utf-8")
+        projects = content.splitlines()
+        # Only do random sampling if not using top packages
+        if sample_size is not None:
+            projects = random.sample(projects, sample_size)
+        return projects
+    # This should not happen as we've already checked if project_list_file is None
+    return []
+
+
 def sample_pypi_projects(
-        *,
-        sample_size: int | None = None,
-        random_seed: int | None = None,
-        project_list_file=None,
-        redirect_github_urls: bool = True,
-        remove_duplicates: bool = True,
-        remove_no_github_url_found: bool = True,
+    *,
+    sample_size: int | None = None,
+    random_seed: int | None = None,
+    project_list_file: str | None = None,
+    redirect_github_urls: bool = True,
+    remove_duplicates: bool = True,
+    remove_no_github_url_found: bool = True,
+    use_top_packages: bool = False,
+    languages: list[str] | None = None,
 ) -> str:
     """Sample PyPI projects and fetch metadata.
 
     Args:
         sample_size: The number of projects to sample. If None, all projects are sampled.
+                    When use_top_packages is True, this is the number of top packages to fetch.
         random_seed: The random seed.
         project_list_file: A file containing a list of projects
         redirect_github_urls: Whether to redirect GitHub URLs
         remove_duplicates: Whether to remove duplicates
         remove_no_github_url_found: Whether to remove projects with no GitHub URL found
+        use_top_packages: Whether to use top PyPI packages from hugovk.github.io/top-pypi-packages/
+        languages: A list of languages to filter by. Only projects that use at least one of these
+            languages will be included.
 
     Returns:
         The sampled projects as a CSV string
     """
-    if random_seed is not None:
-        random.seed(random_seed)
-
     console.log(f"[bold green]Sampling {sample_size} PyPI projects...[/bold green]")
     console.log(f"[bold green]Random seed: {random_seed}[/bold green]")
     console.log(f"[bold green]Project list file: {project_list_file}[/bold green]")
-    console.log(f"[bold green]Redirect GitHub URLs: {redirect_github_urls}[/bold green]")
+    console.log(f"[bold green]Use top packages: {use_top_packages}[/bold green]")
+    console.log(
+        f"[bold green]Redirect GitHub URLs: {redirect_github_urls}[/bold green]"
+    )
     console.log(f"[bold green]Remove duplicates: {remove_duplicates}[/bold green]")
     console.log(
         f"[bold green]Remove projects with no GitHub URL found: "
-        f"{remove_no_github_url_found}[/bold green]")
+        f"{remove_no_github_url_found}[/bold green]"
+    )
+    console.log(
+        f"[bold green]Filter by languages: {languages}[/bold green]"
+    )
 
     # 1. Fetch projects
-    if project_list_file is None:
-        projects = fetch_all_pypi_projects()
-    else:
-        with Path(project_list_file).read_text(encoding="utf-8") as file:
-            projects = file.read().splitlines()
-
-    # 2. Random sampling
-    if sample_size is not None:
-        projects = random.sample(projects, sample_size)
+    projects = _fetch_projects(
+        sample_size=sample_size,
+        project_list_file=project_list_file,
+        use_top_packages=use_top_packages,
+        random_seed=random_seed,
+    )
 
     # 3. Fetch project data
     def fetch_project_data(proj_name: str) -> dict[str, Any]:
@@ -315,15 +549,16 @@ def sample_pypi_projects(
         pypi_project_urls = try_default(lambda: pypi_data["info"]["project_urls"])
 
         # 5. Search for Github URL (+ redirect + to_lower)
-        def to_lowercase(url: str) -> typing.Callable[[], str]:
-            def convert_to_lowercase():
+        def to_lowercase(url: str) -> Callable[[], str]:
+            def convert_to_lowercase() -> str:
                 return url.lower()
 
             return convert_to_lowercase
 
         github_url = try_default(
             lambda: next(
-                url for _, url in pypi_project_urls.items() if _is_valid_github_url(url))
+                url for _, url in pypi_project_urls.items() if _is_valid_github_url(url)
+            )
         )
         github_url = try_default(to_lowercase(github_url))
         if redirect_github_urls:
@@ -340,6 +575,9 @@ def sample_pypi_projects(
             lambda: _match_pypi_git_tag(pypi_version=latest_pypi_tag, git_tags=git_tags)
         )
 
+        # 8. Fetch languages used in the repository
+        github_languages = try_default(lambda: _fetch_github_languages(github_url))
+
         return {
             "Project_Name": proj_name,
             "Github_URL": github_url,
@@ -354,58 +592,98 @@ def sample_pypi_projects(
             "PYPI_project_urls": pypi_project_urls,
             "github_url_status": github_url_status,
             "git_tags": git_tags,
+            "github_languages": github_languages,
         }
 
     # Wrap the ThreadPoolExecutor in a tqdm progress bar
     with ThreadPoolExecutor(max_workers=10) as executor:
-        project_details = pd.DataFrame(list(
-            tqdm(executor.map(fetch_project_data, projects), total=len(projects),
-                 desc="Processing projects")))
+        project_details = pd.DataFrame(
+            list(
+                tqdm(
+                    executor.map(fetch_project_data, projects),
+                    total=len(projects),
+                    desc="Processing projects",
+                )
+            )
+        )
 
-    # 8. Drop duplicates (some PyPI projects point to the same GitHub URL)
-    if remove_duplicates:
-        num_duplicates = project_details.duplicated("Github_URL").sum()
-        console.log(
-            f"[yellow]Dropped {num_duplicates} duplicated entries (same GitHub URL)["
-            f"/yellow]")
-        project_details = project_details[
-            ~project_details.duplicated("Github_URL") | project_details[
-                "Github_URL"].isna()]
+    # Apply filters
+    project_details = _filter_projects(
+        project_details=project_details,
+        remove_duplicates=remove_duplicates,
+        remove_no_github_url_found=remove_no_github_url_found,
+        languages=languages,
+    )
 
-    # 9. Remove cases where no Github URL was found
-    if remove_no_github_url_found:
-        num_no_github_url_found = project_details["Github_URL"].isna().sum()
-        console.log(
-            f"[yellow]Dropped {num_no_github_url_found} projects where no GitHub URL "
-            f"was found[/yellow]")
-        project_details = project_details[~project_details["Github_URL"].isna()]
-
-    return project_details.to_csv(index=False)
+    # Ensure the return value is a string
+    return str(project_details.to_csv(index=False))
 
 
 @click.command()
 @click.option("--sample-size", type=int, help="Number of projects to sample")
 @click.option("--random-seed", type=int, help="Random seed for reproducibility")
-@click.option("--project-list-file", type=click.Path(exists=True),
-              help="Path to project list file")
-@click.option("--redirect-github-urls/--no-redirect-github-urls", default=True,
-              help="Follow GitHub redirects")
-@click.option("--remove-duplicates/--keep-duplicates", default=True,
-              help="Remove duplicate projects")
-@click.option("--remove-no-github-url-found/--keep-no-github-url-found", default=True,
-              help="Remove projects without GitHub URLs")
-@click.option("--csv-output", type=click.Path(), help="Path to store the CSV output",
-              default="output/repos.csv")
-def cli(sample_size, random_seed, project_list_file,  # noqa: PLR0917
-        redirect_github_urls, remove_duplicates, remove_no_github_url_found, csv_output):
+@click.option(
+    "--project-list-file",
+    type=click.Path(exists=True),
+    help="Path to project list file",
+)
+@click.option(
+    "--use-top-packages/--no-use-top-packages",
+    default=False,
+    help="Use top PyPI packages from hugovk.github.io/top-pypi-packages/",
+)
+@click.option(
+    "--redirect-github-urls/--no-redirect-github-urls",
+    default=True,
+    help="Follow GitHub redirects",
+)
+@click.option(
+    "--remove-duplicates/--keep-duplicates",
+    default=True,
+    help="Remove duplicate projects",
+)
+@click.option(
+    "--remove-no-github-url-found/--keep-no-github-url-found",
+    default=True,
+    help="Remove projects without GitHub URLs",
+)
+@click.option(
+    "--csv-output",
+    type=click.Path(),
+    help="Path to store the CSV output",
+    default="output/repos.csv",
+)
+@click.option(
+    "--languages",
+    help="Comma-separated list of languages to filter by (e.g., 'C,C++,Python')",
+)
+def cli(
+    sample_size: int | None,
+    random_seed: int | None,
+    project_list_file: str | None,
+    *,
+    use_top_packages: bool,
+    redirect_github_urls: bool,
+    remove_duplicates: bool,
+    remove_no_github_url_found: bool,
+    csv_output: str,
+    languages: str | None,
+) -> None:
     """CLI wrapper for sample_pypi_projects."""
+    # Parse languages if provided
+    language_list = None
+    if languages:
+        language_list = [lang.strip() for lang in languages.split(",")]
+
     csv = sample_pypi_projects(
         sample_size=sample_size,
         random_seed=random_seed,
         project_list_file=project_list_file,
+        use_top_packages=use_top_packages,
         redirect_github_urls=redirect_github_urls,
         remove_duplicates=remove_duplicates,
         remove_no_github_url_found=remove_no_github_url_found,
+        languages=language_list,
     )
     console.log("[bold green]CSV output generated:[/bold green] " + csv_output)
     Path(csv_output).write_text(csv, encoding="utf-8")
