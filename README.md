@@ -68,7 +68,7 @@ To set up the project and its dependencies, follow these steps:
 Mines repositories from [PyPi](https://pypi.org/) and [GitHub](https://github.com/) to a CSV file.
 
 ```bash
-poetry run mine --sample-size <size> --random-seed <seed> --project-list-file <file> [--redirect-github-urls] [--remove-duplicates] [--remove-no-github-url-found] [--csv-output <file>]
+poetry run mine --sample-size <size> --random-seed <seed> --project-list-file <file> [--use-top-packages] [--top-packages-count <count>] [--redirect-github-urls] [--remove-duplicates] [--remove-no-github-url-found] [--csv-output <file>]
 ```
 
 Options:
@@ -76,15 +76,20 @@ Options:
 - `--sample-size`: Number of projects to sample. If not set, all projects are mined.
 - `--random-seed`: Random seed for reproducibility.
 - `--project-list-file`: Path to the project list file. If not set, all projects are considered.
+- `--use-top-packages`: Use top PyPI packages from [hugovk.github.io/top-pypi-packages/](https://hugovk.github.io/top-pypi-packages/) instead of fetching all PyPI projects (default: `False`).
 - `--redirect-github-urls`: Follow GitHub redirects (default: `True`).
 - `--remove-duplicates`: Remove duplicate projects (default: `True`).
 - `--remove-no-github-url-found`: Remove projects without GitHub URLs (default: `True`).
 - `--csv-output`: Path to store the CSV output (default: `output/repos.csv`).
 
-Example:
+Examples:
 
 ```bash
+# Sample 10 random PyPI projects
 poetry run mine --sample-size 10 --random-seed 42 --csv-output output/repos.csv
+
+# Use top 50 PyPI packages
+poetry run mine --use-top-packages --top-packages-count 50 --csv-output output/top_repos.csv
 ```
 
 ### 2. Dataset Creation
@@ -107,6 +112,24 @@ Example:
 
 ```bash
 poetry run dataset --csv-file src/res/repos.csv --tmp-dir tmp --output output/dataset.json
+```
+
+#### Available Filters
+
+The following filters can be applied during dataset creation:
+
+- **EmptyFilter**: Removes empty modules and classes from the dataset.
+  - A class is considered empty if it has no methods.
+  - A module is considered empty if it has no functions and no classes.
+
+- **NoStringTypeFilter**: Keeps only functions and methods that have a string parameter or return type.
+  - Only considers exact `str` type annotations, not container types like `list[str]` or `dict[str, str]`.
+  - Functions/methods without any string parameters or return types are removed.
+
+You can specify multiple filters by separating them with commas:
+
+```bash
+poetry run dataset --csv-file src/res/repos.csv --tmp-dir tmp --filters NoStringTypeFilter,EmptyFilter
 ```
 
 ---
