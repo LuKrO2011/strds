@@ -87,3 +87,26 @@ def function_name(param1: type, param2: type) -> return_type:
    ```bash
    poetry run pre-commit run --all-files
    ```
+
+### General Guidelines for All LLM Agents
+
+LLM agents **must**:
+
+- Use **ruff-format** for formatting (100-char lines)
+- Use **Google-style docstrings**
+- Add **full type hints**
+- Modify only files in `src/`, `tests/`, or `docs/`
+- Follow existing module and file structure
+- Write or update **unit tests** for all changes
+- Pass `pre-commit run --all-files` and `make pypi` and `make test`
+- Keep diffs small and focused
+
+LLM agents **must not**:
+
+- Push any changes to the repository
+- Create, close, or comment on merge/pull requests
+- Open, comment on, or close GitLab/GitHub issues
+- Change `.git` or CI/CD configuration files
+- Modify `poetry.lock` or `pyproject.toml` unless explicitly instructed
+- Modify files outside the `src/`, `tests/`, or `docs/` directories
+- Introduce dependencies without prior discussion in code comments
