@@ -16,39 +16,18 @@ def test_sample_pypi_projects():
 
 
 def test_fetch_top_pypi_packages():
-    # Create a mock HTML response with a table containing package names
-    mock_html = """
-    <html>
-    <body>
-        <table>
-            <tr>
-                <th>Rank</th>
-                <th>Package</th>
-                <th>Other</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>package1</td>
-                <td>info1</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>package2</td>
-                <td>info2</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>package3</td>
-                <td>info3</td>
-            </tr>
-        </table>
-    </body>
-    </html>
-    """
+    # Create a mock JSON response with package data
+    mock_json = {
+        "rows": [
+            {"project": "package1", "download_count": 1000000},
+            {"project": "package2", "download_count": 900000},
+            {"project": "package3", "download_count": 800000}
+        ]
+    }
 
     # Create a mock response object
     mock_response = MagicMock()
-    mock_response.text = mock_html
+    mock_response.json.return_value = mock_json
 
     # Patch the requests.get function to return our mock response
     with patch("requests.get", return_value=mock_response):

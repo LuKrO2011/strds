@@ -17,8 +17,7 @@ from typing import Any
 import click
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup, Tag
-from bs4.element import NavigableString, PageElement
+from bs4 import BeautifulSoup
 from rich.console import Console
 from rich.logging import RichHandler
 from tqdm import tqdm
@@ -110,26 +109,6 @@ def fetch_all_pypi_projects() -> list[str]:
     return [a.text for a in soup.find_all("a")]
 
 
-def _extract_package_from_row(row: PageElement | Tag | NavigableString) -> str | None:
-    """Extract package name from a table row.
-
-    Args:
-        row: The table row to extract from
-
-    Returns:
-        The package name or None if not found
-    """
-    if not isinstance(row, Tag):
-        return None
-
-    cells = row.find_all("td")
-    if not cells or len(cells) < 2:
-        return None
-
-    # Assume the second cell contains the package name
-    return str(cells[1].text.strip())
-
-
 def fetch_top_pypi_packages(top_n: int = 100) -> list[str]:
     """Fetch top PyPI packages from hugovk.github.io/top-pypi-packages/.
 
@@ -140,35 +119,17 @@ def fetch_top_pypi_packages(top_n: int = 100) -> list[str]:
         A list of top PyPI package names
     """
     console.log("[bold green]Fetching top PyPI packages...[/bold green]")
-    url = "https://hugovk.github.io/top-pypi-packages/"
-    response = requests.get(url, timeout=TIMEOUT).text
-    soup = BeautifulSoup(response, "html.parser")
+    url = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages.min.json"
+    response = requests.get(url, timeout=TIMEOUT).json()
 
     console.log("[bold green]Parsing top PyPI packages...[/bold green]")
     packages: list[str] = []
 
-    # Find tables in the page
-    tables = soup.find_all("table")
-    if not tables:
-        console.log("[bold green]Found 0 top PyPI packages[/bold green]")
-        return packages
-
-    # Assume the first table contains the data we want
-    table = tables[0]
-    if not isinstance(table, Tag):
-        console.log("[bold green]Found 0 top PyPI packages[/bold green]")
-        return packages
-
-    # Get all rows and skip header
-    rows = table.find_all("tr")[1:]
-
-    # Process rows until we have enough packages
-    for row in rows:
-        package_name = _extract_package_from_row(row)
-        if package_name:
-            packages.append(package_name)
-            if len(packages) >= top_n:
-                break
+    # Extract package names from the JSON response
+    if "rows" in response:
+        packages.extend(
+            row["project"] for row in response["rows"][:top_n] if "project" in row
+        )
 
     console.log(f"[bold green]Found {len(packages)} top PyPI packages[/bold green]")
     return packages
