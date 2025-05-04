@@ -16,7 +16,7 @@ from typing import Any
 
 import click
 import pandas as pd
-import requests  # type: ignore[import-untyped]
+import requests
 from bs4 import BeautifulSoup, Tag
 from bs4.element import NavigableString, PageElement
 from rich.console import Console
