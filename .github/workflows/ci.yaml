@@ -1,0 +1,37 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.13']
+        poetry-version: [2.0.0]
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: ${{ matrix.poetry-version }}
+
+      - name: Install dependencies
+        run: poetry install --with=dev,test
+
+      - name: Run the hooks from pre-commit
+        run: poetry run pre-commit run --all-files
+
+      - name: Check typing with mypy
+        run: poetry run mypy src/
+
+      - name: Run tests
+        run: poetry run pytest --cov=src --cov=tests --cov-branch --cov-report=term-missing tests/
