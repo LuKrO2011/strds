@@ -99,6 +99,28 @@ class TestModuleFilter(Filter):  # pylint: disable=too-few-public-methods
         return repository
 
 
+class NonCoreModuleFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all non-core modules.
+
+    A module is considered a core module if its name follows the pattern
+    'src.project_name.bla' or 'project_name.bla', where project_name is the
+    name of the repository.
+    """
+
+    def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
+        project_name = repository.name
+        repository.modules = [
+            module
+            for module in repository.modules
+            if (
+                str(module.file_path).startswith(f"src/{project_name}")
+                or str(module.file_path).startswith(f"{project_name}")
+            )
+        ]
+        return repository
+
+
 def get_all_filters() -> dict[str, type[Filter]]:
     """Discover all Filter subclasses in the current module dynamically.
 

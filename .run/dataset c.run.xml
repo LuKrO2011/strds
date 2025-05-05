@@ -15,7 +15,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/strds/dataset.py" />
-    <option name="PARAMETERS" value="--csv-file output/repos.csv --tmp-dir tmp --filters &quot;PrivateModuleFilter,TestModuleFilter,EmptyFilter&quot; --output output/dataset.json --keep-tmp-dir" />
+    <option name="PARAMETERS" value="--csv-file output/repos.csv --tmp-dir tmp --filters &quot;PrivateModuleFilter,TestModuleFilter,NonCoreModuleFilter,EmptyFilter&quot; --output output/dataset.json --keep-tmp-dir" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="true" />
     <option name="MODULE_MODE" value="false" />
