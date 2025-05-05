@@ -2,6 +2,7 @@
 
 import logging
 import operator
+import os
 import random
 import re
 import shlex
@@ -35,8 +36,21 @@ logging.basicConfig(
     level=logging.INFO, format="%(message)s", handlers=[RichHandler(console=console)]
 )
 
+# Try to get token from env or file
+token = os.getenv("GITHUB_TOKEN")
+if not token:
+    try:
+        token = Path(".github_token").read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        console.log("[yellow]No GitHub token found. Please set GITHUB_TOKEN or create a "
+                    ".github_token file.[/yellow]")
+
 session = requests.Session()
 session.mount("", requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
+if token:
+    session.headers.update({
+        "Authorization": f"Bearer {token}"
+    })
 
 
 def get_git_path() -> str:
