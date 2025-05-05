@@ -131,6 +131,7 @@ def run_methods(
     extract_callables(
         loaded_dataset, output_dir, without_type_annotations=without_type_annotations
     )
+    console.log(f"All methods saved to {output_dir}")
 
 
 def run_repositories(
@@ -143,6 +144,7 @@ def run_repositories(
     save_all_code(
         loaded_dataset, output_dir, without_type_annotations=without_type_annotations
     )
+    console.log(f"All code saved to {output_dir}")
 
 
 def run_pynguin(dataset: Path, output_path: Path) -> None:
@@ -153,6 +155,7 @@ def run_pynguin(dataset: Path, output_path: Path) -> None:
     if output_path.is_file():
         output_path.unlink()
     create_pynguin_xmls(loaded_dataset, output_path)
+    console.log(f"Pynguin XMLs saved to {output_path}")
 
 
 @click.group()
