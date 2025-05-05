@@ -1,37 +1,38 @@
-[tool.poetry]
+[project]
 name = "strds"
-description = "Python module for generating datasets"
-authors = ["LuKrO2011 <lukas.krodinger@gmail.com>"]
 version = "0.1.0"
+description = "Python module for generating datasets"
+authors = [{ name = "LuKrO2011", email = "lukas.krodinger@gmail.com" }]
 readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "rich>=13.9.4",
+    "gitpython>=3.1.43",
+    "click>=8.1.8",
+    "libcst>=1.6.0",
+    "pytest>=8.3.4",
+    "defusedxml>=0.7.1",
+    "pandas>=2.2.3",
+    "requests>=2.32.3",
+    "tqdm>=4.67.1",
+    "beautifulsoup4>=4.13.1",
+]
+
+[project.urls]
+repository = "https://github.com/LuKrO2011/strds"
+
+[project.scripts]
+mine = "strds.mine:cli"
+dataset = "strds.dataset:cli"
+provide = "strds.provide:cli"
+
+[tool.poetry]
 packages = [
     { include = "strds", from = "src" }
 ]
 include = [
     { path = "tests", format = "sdist" }
 ]
-
-[tool.poetry.urls]
-repository = "https://github.com/LuKrO2011/strds"
-
-[tool.poetry.scripts]
-mine = "strds.mine:cli"
-dataset = "strds.dataset:cli"
-provide = "strds.provide:cli"
-
-[tool.poetry.dependencies]
-python = "^3.13"
-rich = "^13.9.4"
-gitpython = "^3.1.43"
-click = "^8.1.8"
-libcst = "^1.6.0"
-pytest = "^8.3.4"
-defusedxml = "^0.7.1"
-pandas = "^2.2.3"
-requests = "^2.32.3"
-tqdm = "^4.67.1"
-beautifulsoup4 = "^4.13.1"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
@@ -43,18 +44,15 @@ pylint = "^3.3.3"
 pyupgrade = "^3.19.1"
 ruff = "^0.9.1"
 
-
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.4"
 pytest-sugar = "^1.0.0"
 pytest-cov = "^6.0.0"
 
-
 [tool.black]
 line-length = 88
 target_version = ["py311"]
 include = '\.pyi?$'
-
 
 [tool.isort]
 profile = "black"
@@ -62,7 +60,6 @@ line_length = 88
 multi_line_output = 3
 include_trailing_comma = true
 indent = "    "
-
 
 [tool.mypy]
 check_untyped_defs = true
@@ -74,12 +71,10 @@ warn_redundant_casts = true
 warn_unused_configs = true
 strict = true
 
-
 [[tool.mypy.overrides]]
 module = "project_template.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -88,12 +83,10 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
-
 [tool.coverage.run]
 branch = true
 source = ["src/project_template", "tests"]
 omit = ["tests/fixtures/*"]
-
 
 [tool.coverage.report]
 exclude_lines = [
@@ -107,13 +100,10 @@ exclude_lines = [
     "if typing.TYPE_CHECKING:"
 ]
 
-
 [tool.coverage.html]
 directory = "cov_html"
 
-
 [tool.ruff]
-# Assume Python 3.10.
 target-version = "py310"
 line-length = 100
 preview = true
@@ -205,7 +195,6 @@ ignore = [
     "RUF003",   # comment contains ambiguous en dash
     "S101",     # do not complain about using assert statements
 ]
-# Allow unused variables when underscore-prefixed:
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.mccabe]
