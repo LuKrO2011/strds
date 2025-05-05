@@ -421,7 +421,7 @@ def _filter_projects(
 
             # Check if the specified languages make up at least the minimum percentage
             percentage = specified_langs_bytes / total_bytes
-            return percentage >= min_language_percentage
+            return bool(percentage >= min_language_percentage)
 
         # Apply the filter
         before_count = len(project_details)
