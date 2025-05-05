@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from strds.utils.filter import PrivateModuleFilter, TestModulesFilter
+from strds.utils.filter import PrivateModuleFilter, TestModuleFilter
 from strds.utils.structure import Module, Repository
 
 
@@ -47,7 +47,7 @@ def test_test_modules_filter():
     )
 
     # Apply the TestModulesFilter
-    filter_instance = TestModulesFilter()
+    filter_instance = TestModuleFilter()
     filtered_repository = filter_instance.apply(repository)
 
     # Verify that only the non-test module remains

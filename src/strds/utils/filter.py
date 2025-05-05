@@ -72,12 +72,14 @@ class PrivateModuleFilter(Filter):  # pylint: disable=too-few-public-methods
     def apply(self, repository: Repository) -> Repository:
         """Apply the filter to a Repository and return the filtered result."""
         repository.modules = [
-            module for module in repository.modules if not module.name.startswith("_")
+            module
+            for module in repository.modules
+            if not module.name.startswith("_") and "/_" not in str(module.file_path)
         ]
         return repository
 
 
-class TestModulesFilter(Filter):  # pylint: disable=too-few-public-methods
+class TestModuleFilter(Filter):  # pylint: disable=too-few-public-methods
     """Removes all test modules.
 
     Identifies tests by checking module and package names.

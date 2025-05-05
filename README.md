@@ -92,6 +92,21 @@ poetry run mine --sample-size 10 --random-seed 42 --csv-output output/repos.csv
 poetry run mine --use-top-packages --top-packages-count 50 --csv-output output/top_repos.csv
 ```
 
+#### GitHub Token
+To allow for more GitHub requests, generate and add a GitHub token:
+1. Generate a [GitHub token](https://github.com/settings/tokens).
+2. Set the token in your environment variables or add a `.github_token` file in the root directory of the project.
+   - Windows:
+     ```bash
+     setx GITHUB_TOKEN <your_token>
+     ```
+   - Linux/MacOS(Bash):
+     ```bash
+     echo 'export GITHUB_TOKEN=<your_token>' >> ~/.bashrc
+     source ~/.bashrc
+     ```
+
+
 ### 2. Dataset Creation
 
 Creates a json file for the dataset.
@@ -126,11 +141,11 @@ The following filters can be applied during dataset creation:
   - Only considers exact `str` type annotations, not container types like `list[str]` or `dict[str, str]`.
   - Functions/methods without any string parameters or return types are removed.
 
-- **PrivateModulesFilter**: Removes all non-public modules from the dataset.
+- **PrivateModuleFilter**: Removes all non-public modules from the dataset.
   - In Python, modules that start with an underscore are considered non-public (private, package private, internal, etc.).
   - Only modules with names that don't start with an underscore are kept.
 
-- **TestModulesFilter**: Removes all test modules from the dataset.
+- **TestModuleFilter**: Removes all test modules from the dataset.
   - Identifies test modules by checking module names starting with 'test_'.
   - Also removes modules located in directories that start with 'test' or contain '/test' in their path.
 
