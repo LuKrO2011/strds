@@ -354,6 +354,7 @@ def _filter_projects(
     remove_duplicates: bool,
     remove_no_github_url_found: bool,
     languages: list[str] | None,
+    min_language_percentage: float = 0.0,
 ) -> pd.DataFrame:
     """Filter projects based on various criteria.
 
@@ -362,6 +363,7 @@ def _filter_projects(
         remove_duplicates: Whether to remove duplicates
         remove_no_github_url_found: Whether to remove projects with no GitHub URL found
         languages: A list of languages to filter by
+        min_language_percentage: Minimum percentage (0.0-1.0) of a language in a project
 
     Returns:
         Filtered DataFrame
@@ -392,12 +394,34 @@ def _filter_projects(
     # 3. Filter by languages if specified
     if languages:
         # Create a function to check if any of the specified languages
-        # are in the project's languages
+        # are in the project's languages and meet the minimum percentage requirement
         def has_specified_language(project_languages: dict[str, Any] | None) -> bool:
             if not project_languages:
                 return False
+
+            # Check if any of the specified languages are in the project
             project_lang_keys = [lang.lower() for lang in project_languages]
-            return any(lang.lower() in project_lang_keys for lang in languages)
+            specified_langs_present = any(lang.lower() in project_lang_keys for lang in languages)
+
+            # No specified languages or no minimum percentage is required => return early
+            if not specified_langs_present or min_language_percentage <= 0.0:
+                return specified_langs_present
+
+            # Calculate the total bytes of code
+            total_bytes = sum(project_languages.values())
+            if total_bytes == 0:
+                return False
+
+            # Calculate the bytes of code for the specified languages
+            specified_langs_bytes = sum(
+                bytes_count
+                for lang, bytes_count in project_languages.items()
+                if any(spec_lang.lower() == lang.lower() for spec_lang in languages)
+            )
+
+            # Check if the specified languages make up at least the minimum percentage
+            percentage = specified_langs_bytes / total_bytes
+            return percentage >= min_language_percentage
 
         # Apply the filter
         before_count = len(project_details)
@@ -406,10 +430,15 @@ def _filter_projects(
         ]
         after_count = len(project_details)
 
-        console.log(
+        filter_message = (
             f"[yellow]Filtered {before_count - after_count} projects that don't use any of the "
-            f"specified languages: {languages}[/yellow]"
+            f"specified languages: {languages}"
         )
+        if min_language_percentage > 0.0:
+            filter_message += (f" or don't meet the minimum language percentage: "
+                               f"{min_language_percentage:.1%}")
+        filter_message += "[/yellow]"
+        console.log(filter_message)
 
     return project_details
 
@@ -468,6 +497,7 @@ def sample_pypi_projects(
     remove_no_github_url_found: bool = True,
     use_top_packages: bool = False,
     languages: list[str] | None = None,
+    min_language_percentage: float = 0.0,
 ) -> str:
     """Sample PyPI projects and fetch metadata.
 
@@ -482,6 +512,9 @@ def sample_pypi_projects(
         use_top_packages: Whether to use top PyPI packages from hugovk.github.io/top-pypi-packages/
         languages: A list of languages to filter by. Only projects that use at least one of these
             languages will be included.
+        min_language_percentage: Minimum percentage (0.0-1.0) of a language in a project
+        to be included. Only projects where the specified languages make up at least
+        this percentage of the total lines of code will be included.
 
     Returns:
         The sampled projects as a CSV string
@@ -500,6 +533,9 @@ def sample_pypi_projects(
     )
     console.log(
         f"[bold green]Filter by languages: {languages}[/bold green]"
+    )
+    console.log(
+        f"[bold green]Minimum language percentage: {min_language_percentage:.1%}[/bold green]"
     )
 
     # 1. Fetch projects
@@ -604,6 +640,7 @@ def sample_pypi_projects(
         remove_duplicates=remove_duplicates,
         remove_no_github_url_found=remove_no_github_url_found,
         languages=languages,
+        min_language_percentage=min_language_percentage,
     )
 
     # Ensure the return value is a string
@@ -648,6 +685,12 @@ def sample_pypi_projects(
     "--languages",
     help="Comma-separated list of languages to filter by (e.g., 'C,C++,Python')",
 )
+@click.option(
+    "--min-language-percentage",
+    type=float,
+    default=0.0,
+    help="Minimum percentage (0.0-1.0) of a language in a project to be included",
+)
 def cli(
     sample_size: int | None,
     random_seed: int | None,
@@ -659,6 +702,7 @@ def cli(
     remove_no_github_url_found: bool,
     csv_output: str,
     languages: str | None,
+    min_language_percentage: float,
 ) -> None:
     """CLI wrapper for sample_pypi_projects."""
     # Parse languages if provided
@@ -675,6 +719,7 @@ def cli(
         remove_duplicates=remove_duplicates,
         remove_no_github_url_found=remove_no_github_url_found,
         languages=language_list,
+        min_language_percentage=min_language_percentage,
     )
 
     if not csv:

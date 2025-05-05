@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/strds/mine.py" />
-    <option name="PARAMETERS" value="--use-top-packages --sample-size 30 --languages &quot;C,C++&quot; --csv-output output/repos.csv" />
+    <option name="PARAMETERS" value="--use-top-packages --sample-size 30 --languages &quot;C,C++&quot; --min-language-percentage=0.01 --csv-output output/repos.csv" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="true" />
     <option name="MODULE_MODE" value="false" />

@@ -21,7 +21,7 @@ def test_fetch_top_pypi_packages():
         "rows": [
             {"project": "package1", "download_count": 1000000},
             {"project": "package2", "download_count": 900000},
-            {"project": "package3", "download_count": 800000}
+            {"project": "package3", "download_count": 800000},
         ]
     }
 
@@ -74,8 +74,10 @@ def test_sample_pypi_projects_with_language_filter():
         "https://github.com/user/cpp_package": {"C++": 50000, "C": 20000},
         "https://github.com/user/js_package": {"JavaScript": 80000, "HTML": 10000},
         "https://github.com/user/mixed_package": {
-            "Python": 40000, "C++": 30000, "JavaScript": 20000
-        }
+            "Python": 40000,
+            "C++": 30000,
+            "JavaScript": 20000,
+        },
     }
 
     # Mock function to return predefined language data based on URL
@@ -84,24 +86,31 @@ def test_sample_pypi_projects_with_language_filter():
 
     # Mock function to return predefined GitHub URLs for packages
     def mock_get_pypi_metadata(project_name):
-        return "successful", 200, {
-            "info": {
-                "project_urls": {
-                    "Source": f"https://github.com/user/{project_name}"
+        return (
+            "successful",
+            200,
+            {
+                "info": {
+                    "project_urls": {
+                        "Source": f"https://github.com/user/{project_name}"
+                    },
+                    "classifiers": [],
                 },
-                "classifiers": []
+                "releases": {"1.0.0": [{"upload_time": "2023-01-01"}]},
             },
-            "releases": {
-                "1.0.0": [{"upload_time": "2023-01-01"}]
-            }
-        }
+        )
 
     # Apply mocks
-    with patch("strds.mine.fetch_all_pypi_projects", return_value=mock_packages), \
-         patch("strds.mine._fetch_github_languages", side_effect=mock_fetch_github_languages), \
-         patch("strds.mine._get_pypi_metadata", side_effect=mock_get_pypi_metadata), \
-         patch("strds.mine.resolve_url", return_value=("", 200)), \
-         patch("strds.mine._get_git_tags", return_value=[]):
+    with (
+        patch("strds.mine.fetch_all_pypi_projects", return_value=mock_packages),
+        patch(
+            "strds.mine._fetch_github_languages",
+            side_effect=mock_fetch_github_languages,
+        ),
+        patch("strds.mine._get_pypi_metadata", side_effect=mock_get_pypi_metadata),
+        patch("strds.mine.resolve_url", return_value=("", 200)),
+        patch("strds.mine._get_git_tags", return_value=[]),
+    ):
 
         # Test filtering for C/C++ languages
         csv_cpp = sample_pypi_projects(
@@ -110,7 +119,7 @@ def test_sample_pypi_projects_with_language_filter():
             redirect_github_urls=False,  # Avoid actual network calls
             remove_duplicates=False,
             remove_no_github_url_found=False,
-            languages=["C", "C++"]
+            languages=["C", "C++"],
         )
 
         # The result should include cpp_package and mixed_package (2 packages)
@@ -129,7 +138,7 @@ def test_sample_pypi_projects_with_language_filter():
             redirect_github_urls=False,
             remove_duplicates=False,
             remove_no_github_url_found=False,
-            languages=["Python"]
+            languages=["Python"],
         )
 
         # The result should include python_package and mixed_package (2 packages)
@@ -139,3 +148,43 @@ def test_sample_pypi_projects_with_language_filter():
         assert csv_python.count("mixed_package") > 0
         assert csv_python.count("cpp_package") == 0
         assert csv_python.count("js_package") == 0
+
+        # Test filtering with minimum language percentage
+        csv_python_min_percentage = sample_pypi_projects(
+            sample_size=None,
+            random_seed=42,
+            redirect_github_urls=False,
+            remove_duplicates=False,
+            remove_no_github_url_found=False,
+            languages=["Python"],
+            min_language_percentage=0.5,  # 50%
+        )
+
+        # The result should include only python_package (Python is 100% of the code)
+        # but not mixed_package (Python is only 40000/90000 = 44.4% of the code)
+        assert csv_python_min_percentage
+        assert isinstance(csv_python_min_percentage, str)
+        assert csv_python_min_percentage.count("python_package") > 0
+        assert csv_python_min_percentage.count("mixed_package") == 0
+        assert csv_python_min_percentage.count("cpp_package") == 0
+        assert csv_python_min_percentage.count("js_package") == 0
+
+        # Test filtering with C++ and a lower minimum percentage
+        csv_cpp_min_percentage = sample_pypi_projects(
+            sample_size=None,
+            random_seed=42,
+            redirect_github_urls=False,
+            remove_duplicates=False,
+            remove_no_github_url_found=False,
+            languages=["C++"],
+            min_language_percentage=0.3,  # 30%
+        )
+
+        # The result should include both cpp_package (C++ is 50000/70000 = 71.4% of the code)
+        # and mixed_package (C++ is 30000/90000 = 33.3% of the code)
+        assert csv_cpp_min_percentage
+        assert isinstance(csv_cpp_min_percentage, str)
+        assert csv_cpp_min_percentage.count("cpp_package") > 0
+        assert csv_cpp_min_percentage.count("mixed_package") > 0
+        assert csv_cpp_min_percentage.count("python_package") == 0
+        assert csv_cpp_min_percentage.count("js_package") == 0
