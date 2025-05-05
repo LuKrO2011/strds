@@ -370,14 +370,15 @@ def _filter_projects(
     """
     # 1. Remove cases where no Github URL was found
     if remove_no_github_url_found:
-        num_no_github_url_found = (project_details["Github_URL"].isna().sum() +
-                                   (not project_details["Github_URL"].sum()))
+        prev_count = len(project_details)
+        project_details = project_details[
+            project_details["Github_URL"].notna() & project_details["Github_URL"].astype(bool)
+            ]
+        new_count = len(project_details)
+        num_dropped = prev_count - new_count
         console.log(
-            f"[yellow]Dropped {num_no_github_url_found} projects where no GitHub URL "
-            f"was found[/yellow]"
+            f"[yellow]Dropped {num_dropped} projects where no GitHub URL was found[/yellow]"
         )
-        project_details = project_details[~project_details["Github_URL"].isna()
-                                          & project_details["Github_URL"].astype(bool)]
 
     # 2. Drop duplicates (some PyPI projects point to the same GitHub URL)
     if remove_duplicates:
@@ -431,14 +432,16 @@ def _filter_projects(
         after_count = len(project_details)
 
         filter_message = (
-            f"[yellow]Filtered {before_count - after_count} projects that don't use any of the "
-            f"specified languages: {languages}"
+            f"[yellow]Dropped {before_count - after_count} projects that don't use any "
+            f"of the specified languages: {languages}"
         )
         if min_language_percentage > 0.0:
             filter_message += (f" or don't meet the minimum language percentage: "
                                f"{min_language_percentage:.1%}")
         filter_message += "[/yellow]"
         console.log(filter_message)
+
+    console.log(f"[bold green]Remaining projects: {len(project_details)}[/bold green]")
 
     return project_details
 
