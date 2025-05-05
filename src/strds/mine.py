@@ -366,7 +366,18 @@ def _filter_projects(
     Returns:
         Filtered DataFrame
     """
-    # 1. Drop duplicates (some PyPI projects point to the same GitHub URL)
+    # 1. Remove cases where no Github URL was found
+    if remove_no_github_url_found:
+        num_no_github_url_found = (project_details["Github_URL"].isna().sum() +
+                                   (not project_details["Github_URL"].sum()))
+        console.log(
+            f"[yellow]Dropped {num_no_github_url_found} projects where no GitHub URL "
+            f"was found[/yellow]"
+        )
+        project_details = project_details[~project_details["Github_URL"].isna()
+                                          & project_details["Github_URL"].astype(bool)]
+
+    # 2. Drop duplicates (some PyPI projects point to the same GitHub URL)
     if remove_duplicates:
         num_duplicates = project_details.duplicated("Github_URL").sum()
         console.log(
@@ -377,15 +388,6 @@ def _filter_projects(
             ~project_details.duplicated("Github_URL")
             | project_details["Github_URL"].isna()
         ]
-
-    # 2. Remove cases where no Github URL was found
-    if remove_no_github_url_found:
-        num_no_github_url_found = project_details["Github_URL"].isna().sum()
-        console.log(
-            f"[yellow]Dropped {num_no_github_url_found} projects where no GitHub URL "
-            f"was found[/yellow]"
-        )
-        project_details = project_details[~project_details["Github_URL"].isna()]
 
     # 3. Filter by languages if specified
     if languages:
