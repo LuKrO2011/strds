@@ -1,16 +1,18 @@
-[project]
+[tool.poetry]
 name = "strds"
 description = "Python module for generating datasets"
-authors = [{ name = "LuKrO2011", email = "<lukas.krodinger@gmail.com>" }]
+authors = ["LuKrO2011 <lukas.krodinger@gmail.com>"]
 version = "0.1.0"
 readme = "README.md"
-requires-python = ">=3.13"
 packages = [
     { include = "strds", from = "src" }
 ]
 include = [
     { path = "tests", format = "sdist" }
 ]
+
+[tool.poetry.urls]
+repository = "https://github.com/LuKrO2011/strds"
 
 [tool.poetry.scripts]
 mine = "strds.mine:cli"
