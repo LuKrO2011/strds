@@ -171,5 +171,9 @@ fabric.properties
 
 # End of JetBrains template
 
-# Output folder
+# Output and temporary files
 output/
+tmp/
+
+# Local configuration files
+/.github_token
