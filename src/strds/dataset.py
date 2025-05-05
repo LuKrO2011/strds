@@ -213,6 +213,7 @@ def create_dataset(
             console.log(f"No modules left after filtering: {project.path}")
     dataset = Dataset(repositories=repositories)
     save_to_json_file(dataset, output)
+    console.log(f"Dataset saved to {output}")
     if not keep_tmp_dir:
         shutil.rmtree(tmp_dir)
 
