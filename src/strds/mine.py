@@ -572,16 +572,20 @@ def sample_pypi_projects(
             "github_languages": github_languages,
         }
 
-    # Wrap the ThreadPoolExecutor in a tqdm progress bar
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        project_details = pd.DataFrame(
-            list(
-                tqdm(
-                    executor.map(fetch_project_data, projects),
-                    total=len(projects),
-                    desc="Processing projects",
+    if PARALLEL_REQUESTS > 1:
+        with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as executor:
+            project_details = pd.DataFrame(
+                list(
+                    tqdm(
+                        executor.map(fetch_project_data, projects),
+                        total=len(projects),
+                        desc="Processing projects (parallel)",
+                    )
                 )
             )
+    else:
+        project_details = pd.DataFrame(
+            [fetch_project_data(p) for p in tqdm(projects, desc="Processing projects (sequential)")]
         )
 
     if project_details.empty:
