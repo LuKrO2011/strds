@@ -534,7 +534,14 @@ def sample_pypi_projects(
 
         github_url = try_default(
             lambda: next(
-                url for _, url in pypi_project_urls.items() if _is_valid_github_url(url)
+                (url for tag, url in pypi_project_urls.items() if ("github" in tag.lower()
+                                                                    or
+                                                                   "source" in
+                                                                   tag.lower())
+                                                                   and _is_valid_github_url(url)),
+                next(
+                    url for _, url in pypi_project_urls.items() if _is_valid_github_url(url)
+                )
             )
         )
         github_url = try_default(to_lowercase(github_url))
