@@ -83,8 +83,6 @@ class TestModuleFilter(Filter):  # pylint: disable=too-few-public-methods
     """Removes all test modules.
 
     Identifies tests by checking module and package names.
-    Test modules typically have names starting with 'test_' or are located in
-    packages/directories that start with 'test'.
     """
 
     def apply(self, repository: Repository) -> Repository:
@@ -92,9 +90,25 @@ class TestModuleFilter(Filter):  # pylint: disable=too-few-public-methods
         repository.modules = [
             module
             for module in repository.modules
-            if not module.name.startswith("test_")
-            and not str(module.file_path).startswith("test")
-            and "/test" not in str(module.file_path)
+            if "test" not in module.name
+            and "test" not in str(module.file_path)
+        ]
+        return repository
+
+
+class ExampleModuleFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all example modules.
+
+    Identifies examples by checking module and package names.
+    """
+
+    def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
+        repository.modules = [
+            module
+            for module in repository.modules
+            if "example" not in module.name
+            and "example" not in str(module.file_path)
         ]
         return repository
 
