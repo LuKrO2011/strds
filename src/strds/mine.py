@@ -490,6 +490,47 @@ def _fetch_projects(
     return []
 
 
+def _github_search(proj_name: str) -> str:
+    """Search for a GitHub URL using the GitHub API.
+
+    Args:
+        proj_name: The project name
+
+    Returns:
+        The GitHub URL
+    """
+    if proj_name == "torch":
+        proj_name = "pytorch"
+
+    try:
+        # Search for repositories with the project name
+        api_url = f"https://api.github.com/search/repositories?q={proj_name}"
+        response = session.get(api_url, timeout=TIMEOUT)
+
+        if response.status_code != HTTP_SUCCESS_STATUS_CODE:
+            console.log(
+                f"[yellow]GitHub API search failed for {proj_name}: {response.status_code}[/yellow]"
+            )
+            return ""
+
+        data = response.json()
+
+        # Check if any repositories were found
+        if data.get("total_count", 0) == 0 or not data.get("items"):
+            return ""
+
+        # Find the most relevant repository (first result)
+        for repo in data["items"]:
+            github_url = str(repo.get("html_url", ""))
+            if github_url and _is_valid_github_url(github_url):
+                return github_url.lower()
+
+        return ""
+    except Exception as e:  # noqa: BLE001
+        console.log(f"[red]Error searching GitHub for {proj_name}: {e}[/red]")
+        return ""
+
+
 def sample_pypi_projects(
     *,
     sample_size: int | None = None,
@@ -584,6 +625,8 @@ def sample_pypi_projects(
             )
         )
         github_url = try_default(to_lowercase(github_url))
+        if not github_url:
+            github_url = _github_search(proj_name)
         if redirect_github_urls:
             github_url, github_url_status = try_default(lambda: resolve_url(github_url))
         else:
