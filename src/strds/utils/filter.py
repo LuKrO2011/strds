@@ -113,6 +113,23 @@ class ExampleModuleFilter(Filter):  # pylint: disable=too-few-public-methods
         return repository
 
 
+class InitModuleFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all __init__ modules.
+
+    Identifies examples by checking module and package names.
+    """
+
+    def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
+        repository.modules = [
+            module
+            for module in repository.modules
+            if "__init__" not in module.name
+               and "__init__" not in str(module.file_path)
+        ]
+        return repository
+
+
 class NonCoreModuleFilter(Filter):  # pylint: disable=too-few-public-methods
     """Removes all non-core modules.
 
