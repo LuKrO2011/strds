@@ -25,6 +25,7 @@ repository = "https://github.com/LuKrO2011/strds"
 mine = "strds.mine:cli"
 dataset = "strds.dataset:cli"
 provide = "strds.provide:cli"
+stats = "strds.stats:cli"
 
 [tool.poetry]
 packages = [

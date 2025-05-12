@@ -2,7 +2,7 @@
 
 import csv
 from ast import literal_eval
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +23,7 @@ class FlaPyProject:  # pylint: disable=too-many-instance-attributes
     pypi_project_urls: dict[str, str]
     github_url_status: float
     git_tags: list[str]
+    github_languages: dict[str, int] = field(default_factory=dict)
 
 
 def parse_list_field(field: str) -> list[Any]:
@@ -89,6 +90,7 @@ def parse_csv(file_path: Path) -> list[FlaPyProject]:
                 pypi_project_urls=parse_dict_field(row["PYPI_project_urls"]),
                 github_url_status=parse_float_field(row["github_url_status"]),
                 git_tags=parse_list_field(row["git_tags"]),
+                github_languages=parse_dict_field(row.get("github_languages", "{}")),
             )
             projects.append(project)
     return projects
