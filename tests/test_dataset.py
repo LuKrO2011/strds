@@ -19,4 +19,12 @@ def test_integrate(tmp_path: Path):
 
     actual = load_from_json_file(output)
     expected = load_from_json_file(expected_json_path)
-    assert actual.sort() == expected.sort()
+
+    # Sort both datasets
+    actual.sort()
+    expected.sort()
+
+    # Compare repositories by name
+    actual_repos = sorted([repo.name for repo in actual.repositories])
+    expected_repos = sorted([repo.name for repo in expected.repositories])
+    assert actual_repos == expected_repos
