@@ -40,7 +40,9 @@ def create_pynguin_project(project: Repository) -> Project:
 
 def module_to_string(module: Module) -> str:
     """Converts a module to a pynguin-module string."""
-    return module.file_path.with_suffix("").as_posix().replace("/", ".")
+    path = module.file_path.with_suffix("").as_posix()
+    path = path.removeprefix("src/")
+    return path.replace("/", ".")
 
 
 def write_xml(projects: dict[str, Project], out_file: Path) -> None:
