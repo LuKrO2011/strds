@@ -1,6 +1,7 @@
 """Tests for the stats module."""
 
 import tempfile
+import xml.etree.ElementTree as ET  # noqa: S405
 from pathlib import Path
 
 from rich.table import Table
@@ -8,12 +9,14 @@ from rich.table import Table
 from strds.stats import (
     count_modules_per_project,
     export_to_latex,
+    filter_dataset_with_xml,
     get_cc_percentage,
     get_language_percentages,
     get_project_stats,
     print_table,
 )
 from strds.utils.flapy_csv_utils import FlaPyProject
+from strds.utils.pynguin_xml import read_xml
 from strds.utils.structure import Dataset, Module, Repository
 
 
@@ -228,3 +231,95 @@ def test_export_to_latex():
         assert r"\caption{Dataset Statistics}" in content
         assert r"\label{tab:dataset_stats}" in content
         assert r"\end{table}" in content
+
+
+def test_filter_dataset_with_xml():
+    """Test filtering the dataset with an XML file."""
+    # Create a test dataset with three repositories
+    repo1 = Repository(
+        name="repo1",
+        url="https://github.com/user/repo1",
+        pypi_tag="1.0.0",
+        git_commit_hash="abc123",
+        modules=[
+            Module(name="module1", file_path=Path("module1.py")),
+            Module(name="module2", file_path=Path("module2.py")),
+            Module(name="module3", file_path=Path("module3.py")),  # This module won't be in the XML
+        ],
+    )
+    repo2 = Repository(
+        name="repo2",
+        url="https://github.com/user/repo2",
+        pypi_tag="2.0.0",
+        git_commit_hash="def456",
+        modules=[
+            Module(name="module4", file_path=Path("module4.py")),
+        ],
+    )
+    repo3 = Repository(
+        name="repo3",
+        url="https://github.com/user/repo3",
+        pypi_tag="3.0.0",
+        git_commit_hash="ghi789",
+        modules=[
+            Module(name="module5", file_path=Path("module5.py")),
+            Module(name="module6", file_path=Path("module6.py")),  # This module won't be in the XML
+        ],
+    )
+    dataset = Dataset(repositories=[repo1, repo2, repo3])
+
+    # Create a temporary XML file with only repo1 and repo3, and only some of their modules
+    with tempfile.NamedTemporaryFile(suffix=".xml") as tmp_file:
+        tmp_path = Path(tmp_file.name)
+
+        # Create XML content
+        root_element = ET.Element("projects")
+
+        # Add repo1 with only module1 and module2
+        proj1 = ET.SubElement(root_element, "project")
+        ET.SubElement(proj1, "name").text = "repo1"
+        ET.SubElement(proj1, "version").text = "1.0.0"
+        ET.SubElement(proj1, "repository").text = "https://github.com/user/repo1"
+        ET.SubElement(proj1, "sources").text = "projects/repo1"
+        modules1 = ET.SubElement(proj1, "modules")
+        ET.SubElement(modules1, "module").text = "module1"
+        ET.SubElement(modules1, "module").text = "module2"
+        # Note: module3 is not included in the XML
+
+        # Add repo3 with only module5
+        proj3 = ET.SubElement(root_element, "project")
+        ET.SubElement(proj3, "name").text = "repo3"
+        ET.SubElement(proj3, "version").text = "3.0.0"
+        ET.SubElement(proj3, "repository").text = "https://github.com/user/repo3"
+        ET.SubElement(proj3, "sources").text = "projects/repo3"
+        modules3 = ET.SubElement(proj3, "modules")
+        ET.SubElement(modules3, "module").text = "module5"
+        # Note: module6 is not included in the XML
+
+        # Write XML to file
+        tree = ET.ElementTree(root_element)
+        tree.write(tmp_path, encoding="unicode", xml_declaration=True)
+
+        # Read the XML file
+        xml_projects = read_xml(tmp_path)
+
+        # Filter the dataset using the filter_dataset_with_xml function
+        filtered_dataset = filter_dataset_with_xml(dataset, xml_projects)
+
+        # Verify the filtered dataset
+        assert len(filtered_dataset.repositories) == 2
+        assert filtered_dataset.repositories[0].name == "repo1"
+        assert filtered_dataset.repositories[1].name == "repo3"
+        assert "repo2" not in [repo.name for repo in filtered_dataset.repositories]
+
+        # Verify that only the modules in the XML are included
+        repo1_modules = [module.name for module in filtered_dataset.repositories[0].modules]
+        assert "module1" in repo1_modules
+        assert "module2" in repo1_modules
+        assert "module3" not in repo1_modules  # This module should be filtered out
+        assert len(repo1_modules) == 2
+
+        repo3_modules = [module.name for module in filtered_dataset.repositories[1].modules]
+        assert "module5" in repo3_modules
+        assert "module6" not in repo3_modules  # This module should be filtered out
+        assert len(repo3_modules) == 1

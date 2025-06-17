@@ -14,7 +14,8 @@ from rich.table import Table
 
 from strds.utils.flapy_csv_utils import FlaPyProject, parse_csv
 from strds.utils.latex import export_to_latex
-from strds.utils.structure import Dataset, load_from_json_file
+from strds.utils.pynguin_xml import module_to_string, read_xml
+from strds.utils.structure import Dataset, Repository, load_from_json_file
 
 console = Console()
 
@@ -113,6 +114,46 @@ def get_project_stats(
     return stats
 
 
+def filter_dataset_with_xml(dataset: Dataset, xml_projects: dict[str, Any]) -> Dataset:
+    """Filter the dataset to only include projects and modules that exist in the XML.
+
+    Args:
+        dataset: The dataset to filter
+        xml_projects: Dictionary of projects from the XML file
+
+    Returns:
+        A new dataset with only the projects and modules that exist in the XML
+    """
+    # Get the project names from the XML
+    xml_project_names = set(xml_projects.keys())
+    filtered_repositories = []
+
+    for repo in dataset.repositories:
+        if repo.name in xml_project_names:
+            # Get the modules from the XML for this project
+            xml_project_modules = set(xml_projects[repo.name].modules)
+
+            # Filter the repository's modules to only include those that exist in the XML
+            filtered_modules = [
+                module for module in repo.modules
+                if module_to_string(module) in xml_project_modules
+            ]
+
+            # Create a new Repository object with the filtered modules
+            filtered_repo = Repository(
+                name=repo.name,
+                url=repo.url,
+                pypi_tag=repo.pypi_tag,
+                git_commit_hash=repo.git_commit_hash,
+                modules=filtered_modules
+            )
+
+            filtered_repositories.append(filtered_repo)
+
+    # Create a new dataset with the filtered repositories
+    return Dataset(repositories=filtered_repositories)
+
+
 def print_table(stats: list[dict[str, Any]]) -> Table:
     """Create a rich table with the statistics.
 
@@ -157,16 +198,35 @@ def print_table(stats: list[dict[str, Any]]) -> Table:
     type=click.Path(file_okay=True, dir_okay=False, path_type=Path),
     help="Path to export the table as LaTeX",
 )
-def cli(dataset_file: Path, repos_file: Path, latex_output: Path | None = None) -> None:
+@click.option(
+    "--filtered-xml",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
+    help="Path to XML file to filter projects for",
+)
+def cli(
+    dataset_file: Path,
+    repos_file: Path,
+    latex_output: Path | None = None,
+    filtered_xml: Path | None = None,
+) -> None:
     """Main function to run the script.
 
     Args:
         dataset_file: Path to the dataset file (JSON)
         repos_file: Path to the repos file (CSV)
         latex_output: Optional path to export the table as LaTeX
+        filtered_xml: Optional path to the Pynguin-XML file to filter projects/modules for
     """
     # Load the dataset file
     dataset = load_from_json_file(dataset_file)
+
+    # Filter dataset if filtered_xml is provided
+    if filtered_xml:
+        # Read the XML file
+        xml_projects = read_xml(filtered_xml)
+
+        # Filter the dataset to only include projects and modules that exist in the XML
+        dataset = filter_dataset_with_xml(dataset, xml_projects)
 
     # Load the repos file
     projects = parse_csv(repos_file)
