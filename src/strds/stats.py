@@ -97,18 +97,31 @@ def get_project_stats(
         project = projects_dict.get(project_name)
 
         if project:
-            # Calculate C/C++ percentage
+            # Calculate C/C++ percentage and bytes in MB
             cc_percentage = 0.0
+            python_mb = 0.0
+            cc_mb = 0.0
             if project.github_languages:
                 # Convert the dictionary to a string representation for get_cc_percentage
                 languages_str = str(project.github_languages)
                 cc_percentage = get_cc_percentage(languages_str)
+                try:
+                    languages_dict = ast.literal_eval(languages_str)
+                    python_bytes = languages_dict.get("Python", 0)
+                    cc_bytes = languages_dict.get("C", 0) + languages_dict.get("C++", 0)
+                    python_mb = round(python_bytes / (1024 * 1024), 2)
+                    cc_mb = round(cc_bytes / (1024 * 1024), 2)
+                except Exception:  # noqa: BLE001
+                    python_mb = 0.0
+                    cc_mb = 0.0
 
             stats.append({
                 "project_name": project_name,
                 "modules_count": modules_count.get(project_name, 0),
                 "version_tag": repo.pypi_tag,
-                "cc_percentage": cc_percentage
+                "cc_percentage": cc_percentage,
+                "python_mb": python_mb,
+                "cc_mb": cc_mb
             })
 
     return stats

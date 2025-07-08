@@ -28,7 +28,9 @@ def export_to_latex(stats: list[dict[str, Any]], output_path: Path) -> None:
             f"{stat['project_name']} & "
             f"{stat['modules_count']} & "
             f"{stat['version_tag']} & "
-            f"{stat['cc_percentage']:.2f}\\% \\\\\n"
+            f"{stat['cc_mb']} & "
+            f"{stat['python_mb']} & "
+            f"{stat['cc_percentage']:.2f}\\% \\\\n"
         )
         rows += row
 
