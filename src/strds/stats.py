@@ -183,6 +183,8 @@ def print_table(stats: list[dict[str, Any]]) -> Table:
     table.add_column("Project Name", style="cyan")
     table.add_column("Modules Count", justify="right", style="green")
     table.add_column("Version/Tag", style="yellow")
+    table.add_column("Python MB", justify="right", style="blue")
+    table.add_column("C/C++ MB", justify="right", style="blue")
     table.add_column("C/C++ Percentage", justify="right", style="magenta")
 
     # Add rows
@@ -191,6 +193,8 @@ def print_table(stats: list[dict[str, Any]]) -> Table:
             stat["project_name"],
             str(stat["modules_count"]),
             stat["version_tag"],
+            f"{stat['python_mb']:.2f} MB",
+            f"{stat['cc_mb']:.2f} MB",
             f"{stat['cc_percentage']:.2f}%"
         )
 

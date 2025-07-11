@@ -30,9 +30,10 @@ def export_to_latex(stats: list[dict[str, Any]], output_path: Path) -> None:
             f"{stat['version_tag']} & "
             f"{stat['cc_mb']} & "
             f"{stat['python_mb']} & "
-            f"{stat['cc_percentage']:.2f}\\% \\\\n"
+            f"{stat['cc_percentage']:.2f}\\%"
         )
         rows += row
+        rows += "\n"
 
     # Replace the placeholder with the rows
     latex_table = template.replace("{rows}", rows)
