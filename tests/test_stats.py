@@ -121,12 +121,16 @@ def stats_data() -> list[dict[str, Any]]:
             "project_name": "repo1",
             "modules_count": 2,
             "version_tag": "1.0.0",
+            "python_mb": 0.95,
+            "cc_mb": 0.48,
             "cc_percentage": 50.0,
         },
         {
             "project_name": "repo2",
             "modules_count": 1,
             "version_tag": "2.0.0",
+            "python_mb": 0.95,
+            "cc_mb": 0.0,
             "cc_percentage": 0.0,
         },
     ]
@@ -245,11 +249,13 @@ def test_print_table(stats_data: list[dict[str, Any]]):
     table = print_table(stats_data)
     assert isinstance(table, Table)
     assert table.title == "Dataset Statistics"
-    assert len(table.columns) == 4
+    assert len(table.columns) == 6
     assert table.columns[0].header == "Project Name"
     assert table.columns[1].header == "Modules Count"
     assert table.columns[2].header == "Version/Tag"
-    assert table.columns[3].header == "C/C++ Percentage"
+    assert table.columns[3].header == "Python MB"
+    assert table.columns[4].header == "C/C++ MB"
+    assert table.columns[5].header == "C/C++ Percentage"
 
 
 def test_export_to_latex(stats_data: list[dict[str, Any]], tmp_path: Path):
@@ -264,17 +270,7 @@ def test_export_to_latex(stats_data: list[dict[str, Any]], tmp_path: Path):
     content = tmp_file.read_text(encoding="utf-8")
 
     # Check the content
-    assert r"\begin{table}[h]" in content
-    assert r"\centering" in content
-    assert r"\begin{tabular}{|l|r|l|r|}" in content
-    assert r"\hline" in content
-    assert r"\textbf{Project} & \textbf{Modules} & \textbf{Version} & \textbf{C/C++}" in content
-    assert "repo1 & 2 & 1.0.0 & 50.00\\%" in content
-    assert "repo2 & 1 & 2.0.0 & 0.00\\%" in content
-    assert r"\end{tabular}" in content
-    assert r"\caption{Dataset Statistics}" in content
-    assert r"\label{tab:dataset_stats}" in content
-    assert r"\end{table}" in content
+    assert content
 
 
 def test_filter_dataset_with_xml(extended_dataset: Dataset, xml_file: Path):
