@@ -4,7 +4,7 @@ import inspect
 import sys
 from abc import ABC, abstractmethod
 
-from strds.utils.structure import Repository
+from strds.utils.structure import Module, Repository
 
 
 class Filter(ABC):  # pylint: disable=too-few-public-methods
@@ -148,6 +148,37 @@ class NonCoreModuleFilter(Filter):  # pylint: disable=too-few-public-methods
                 str(module.file_path).startswith(f"src/{project_name}")
                 or str(module.file_path).startswith(f"{project_name}")
             )
+        ]
+        return repository
+
+
+class NoCliFilter(Filter):  # pylint: disable=too-few-public-methods
+    """Removes all modules that do not use click, argparse, typer or sys.argv.
+
+    A module is considered to use CLI libraries if any function or method
+    contains references to 'click', 'argparse', 'typer', or 'sys.argv'
+    in its body.
+    """
+
+    def apply(self, repository: Repository) -> Repository:
+        """Apply the filter to a Repository and return the filtered result."""
+        cli_keywords = ("click", "argparse", "typer", "sys.argv")
+
+        def uses_cli(module: Module) -> bool:
+            """Check if a module uses any CLI library."""
+            # Check functions
+            for func in module.functions:
+                if any(keyword in func.body for keyword in cli_keywords):
+                    return True
+            # Check methods
+            for cls in module.classes:
+                for method in cls.methods:
+                    if any(keyword in method.body for keyword in cli_keywords):
+                        return True
+            return False
+
+        repository.modules = [
+            module for module in repository.modules if uses_cli(module)
         ]
         return repository
 

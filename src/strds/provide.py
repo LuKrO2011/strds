@@ -147,14 +147,14 @@ def run_repositories(
     console.log(f"All code saved to {output_dir}")
 
 
-def run_pynguin(dataset: Path, output_path: Path) -> None:
+def run_pynguin(dataset: Path, output_path: Path, *, cli_only: bool = False) -> None:
     """Runs the provide pynguin command."""
     console.log(f"Loading dataset from {dataset}")
     loaded_dataset = load_from_json_file(dataset)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.is_file():
         output_path.unlink()
-    create_pynguin_xmls(loaded_dataset, output_path)
+    create_pynguin_xmls(loaded_dataset, output_path, cli_only=cli_only)
     console.log(f"Pynguin XMLs saved to {output_path}")
 
 
@@ -228,9 +228,15 @@ def repositories(
     type=click.Path(file_okay=True, path_type=Path),
     help="Path to the pynguin.xml file.",
 )
-def pynguin(dataset: Path, output_path: Path) -> None:
+@click.option(
+    "--cli-only",
+    is_flag=True,
+    default=False,
+    help="Only include CLI methods with only_cover tags in the XML.",
+)
+def pynguin(dataset: Path, output_path: Path, *, cli_only: bool) -> None:
     """Creates a directory with pynguin .xml files."""
-    run_pynguin(dataset, output_path)
+    run_pynguin(dataset, output_path, cli_only=cli_only)
 
 
 if __name__ == "__main__":

@@ -121,7 +121,7 @@ Options:
 - `--tmp-dir`: Temporary directory to clone repositories (required).
 - `--keep-tmp-dir`: Retain the temporary directory after execution (optional).
 - `--output`: Path to the output JSON file (default: `output.json`).
-- `--filters`: Comma-separated list of filters to apply (default: `NoStringTypeFilter,EmptyFilter`).
+- `--filters`: Comma-separated list of filters to apply (default: `EmptyFilter`).
 
 Example:
 
@@ -148,6 +148,9 @@ The following filters can be applied during dataset creation:
 - **TestModuleFilter**: Removes all test modules from the dataset.
   - Identifies test modules by checking module names starting with 'test_'.
   - Also removes modules located in directories that start with 'test' or contain '/test' in their path.
+
+- **NoCliFilter**: Removes modules that do not have at least one CLI function/method.
+  - A CLI function/method is defined as one that uses `argparse`, `click` or `typer` libraries to parse command-line arguments.
 
 You can specify multiple filters by separating them with commas:
 
@@ -235,6 +238,7 @@ function:
   signature: string  # Function signature (name + parameters + return type)
   full_signature: string  # Full function signature (annotations + name + parameters + return type)
   file: string  # Relative path to the file containing the function
+  is_cli: boolean  # Whether the function is a CLI entry point
 ```
 
 ### Class
@@ -260,6 +264,7 @@ method:
   signature: string  # Method signature (name + parameters + return type)
   full_signature: string  # Full method signature (annotations + name + parameters + return type)
   constructor: boolean  # Whether the method is a constructor
+  is_cli: boolean  # Whether the function is a CLI entry point
 ```
 
 ### Parameter

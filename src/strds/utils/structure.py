@@ -136,6 +136,7 @@ class Callable(Locatable):
     signature: str
     full_signature: str
     annotations: str | None = ""
+    is_cli: bool = False
 
     @classmethod
     def from_dict(cls, data: dict) -> "Callable":  # type: ignore[type-arg]
@@ -152,6 +153,7 @@ class Callable(Locatable):
             signature=data["signature"],
             full_signature=data["full_signature"],
             annotations=data.get("annotations", ""),
+            is_cli=data.get("is_cli", False),
         )
 
     def sort(self: "Callable") -> "Callable":
@@ -179,8 +181,9 @@ class Method(Callable):
     @classmethod
     def from_dict(cls, data: dict) -> "Method":  # type: ignore[type-arg]
         """Create a Method object from a dictionary."""
+        callable_data = Callable.from_dict(data)
         return cls(
-            **Callable.from_dict(data).__dict__,
+            **callable_data.__dict__,
             is_constructor=data.get("is_constructor", False),
         )
 

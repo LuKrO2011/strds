@@ -58,6 +58,12 @@ def _line_offset(node: ast.AST) -> int:
     raise AttributeError(f"{type(node).__name__} does not have a 'lineno' attribute.")
 
 
+def _is_cli_callable(body: str) -> bool:
+    """Checks if a callable uses CLI libraries (click, argparse, typer, sys.argv)."""
+    cli_keywords = ("click", "argparse", "typer", "sys.argv")
+    return any(keyword in body for keyword in cli_keywords)
+
+
 def parse_parameter(node: ast.arg) -> Parameter:
     """Parses an AST argument node into a Parameter dataclass."""
     return Parameter(
@@ -80,6 +86,7 @@ def parse_function(node: ast.FunctionDef, file: Path) -> Function:
         body=body,
         signature=signature,
         full_signature=signature,
+        is_cli=_is_cli_callable(body),
     )
 
 
@@ -116,6 +123,7 @@ def parse_method(node: ast.FunctionDef, file: Path, class_name: str) -> Method:
         signature=f"{class_name}.{signature}",
         full_signature=f"{class_name}.{signature}",
         is_constructor=node.name == "__init__",
+        is_cli=_is_cli_callable(body),
     )
 
 
@@ -251,7 +259,7 @@ def create_dataset(
     "--filters",
     help="A comma separated list of the filters to apply.",
     metavar="<filters>",
-    default="NoStringTypeFilter,EmptyFilter",
+    default="EmptyFilter",
     type=str,
 )
 def cli(
